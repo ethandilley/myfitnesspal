@@ -19,8 +19,8 @@ Out of scope
 I will first list them out with a basic description and later sections will go into more detail
 
 - [x] Scaffolding: repo structure, docker compose, setup buf, basic go stuff for my service and cli, some make commands even
-- [ ] Proto: setup the protobufs and generate stubs
-- [ ] Server Skeleton: setup in memory endpoints and print a bit
+- [x] Proto: setup the protobufs and generate stubs
+- [x] Server Skeleton: setup in memory endpoints and print a bit
 - [ ] Cli Skeleton: Some basic commands that just call the service
 - [ ] Add Postgres: Wire up simple sqlc postgres calls
 - [ ] Polish Service: make entire calls make sense and beautiful
@@ -96,3 +96,53 @@ Request - date
 repsonse - log entries and the total macros for today
 
 To generate the stubs you run `buf generate`
+
+### Server Skeleton
+
+Just wanted to maintain a simple food data structure and wire up the proto stubs and make them callable
+
+I made the four endpoints in food.go and log.go
+
+I was able to maintain a simple map with the foods and their information
+
+Learnings:
+Need to make the service object
+Need to implement the methods on the service object using the request/response objects
+Need basic grpc stuff in main.go
+net.Listen with tcp
+New grpc server and register my services then serve
+
+I also am able to call each endpoint
+
+```bash
+❯ grpcurl -plaintext localhost:50051 list
+food.v1.FoodService
+grpc.reflection.v1.ServerReflection
+grpc.reflection.v1alpha.ServerReflection
+log.v1.LogService
+
+❯ grpcurl -plaintext -d '{"food_id": 5, "multiplier": 2}' localhost:50051 log.v1.LogService/CreateLogEntry
+{}
+
+❯ grpcurl -plaintext -d '{
+  "name": "Beef",
+  "calories": 80,
+  "protein_g": 15,
+  "carbs_g": 0,
+  "fat_g": 2
+}' localhost:50051 food.v1.FoodService/CreateFood
+{
+  "food": {
+    "id": 1,
+    "name": "Beef",
+    "calories": 80,
+    "proteinG": 15,
+    "fatG": 2
+  }
+}
+```
+
+### Cli Skeleton
+
+
+
