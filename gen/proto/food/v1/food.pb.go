@@ -29,7 +29,6 @@ type Food struct {
 	ProteinG      float64                `protobuf:"fixed64,4,opt,name=protein_g,json=proteinG,proto3" json:"protein_g,omitempty"`
 	CarbsG        float64                `protobuf:"fixed64,5,opt,name=carbs_g,json=carbsG,proto3" json:"carbs_g,omitempty"`
 	FatG          float64                `protobuf:"fixed64,6,opt,name=fat_g,json=fatG,proto3" json:"fat_g,omitempty"`
-	FiberG        float64                `protobuf:"fixed64,7,opt,name=fiber_g,json=fiberG,proto3" json:"fiber_g,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -106,13 +105,6 @@ func (x *Food) GetFatG() float64 {
 	return 0
 }
 
-func (x *Food) GetFiberG() float64 {
-	if x != nil {
-		return x.FiberG
-	}
-	return 0
-}
-
 type CreateFoodRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -120,7 +112,6 @@ type CreateFoodRequest struct {
 	ProteinG      float64                `protobuf:"fixed64,3,opt,name=protein_g,json=proteinG,proto3" json:"protein_g,omitempty"`
 	CarbsG        float64                `protobuf:"fixed64,4,opt,name=carbs_g,json=carbsG,proto3" json:"carbs_g,omitempty"`
 	FatG          float64                `protobuf:"fixed64,5,opt,name=fat_g,json=fatG,proto3" json:"fat_g,omitempty"`
-	FiberG        float64                `protobuf:"fixed64,6,opt,name=fiber_g,json=fiberG,proto3" json:"fiber_g,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -186,13 +177,6 @@ func (x *CreateFoodRequest) GetCarbsG() float64 {
 func (x *CreateFoodRequest) GetFatG() float64 {
 	if x != nil {
 		return x.FatG
-	}
-	return 0
-}
-
-func (x *CreateFoodRequest) GetFiberG() float64 {
-	if x != nil {
-		return x.FiberG
 	}
 	return 0
 }
@@ -493,22 +477,20 @@ var File_proto_food_v1_food_proto protoreflect.FileDescriptor
 
 const file_proto_food_v1_food_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/food/v1/food.proto\x12\afood.v1\"\xaa\x01\n" +
+	"\x18proto/food/v1/food.proto\x12\afood.v1\"\x91\x01\n" +
 	"\x04Food\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\bcalories\x18\x03 \x01(\x01R\bcalories\x12\x1b\n" +
 	"\tprotein_g\x18\x04 \x01(\x01R\bproteinG\x12\x17\n" +
 	"\acarbs_g\x18\x05 \x01(\x01R\x06carbsG\x12\x13\n" +
-	"\x05fat_g\x18\x06 \x01(\x01R\x04fatG\x12\x17\n" +
-	"\afiber_g\x18\a \x01(\x01R\x06fiberG\"\xa7\x01\n" +
+	"\x05fat_g\x18\x06 \x01(\x01R\x04fatG\"\x8e\x01\n" +
 	"\x11CreateFoodRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bcalories\x18\x02 \x01(\x01R\bcalories\x12\x1b\n" +
 	"\tprotein_g\x18\x03 \x01(\x01R\bproteinG\x12\x17\n" +
 	"\acarbs_g\x18\x04 \x01(\x01R\x06carbsG\x12\x13\n" +
-	"\x05fat_g\x18\x05 \x01(\x01R\x04fatG\x12\x17\n" +
-	"\afiber_g\x18\x06 \x01(\x01R\x06fiberG\"7\n" +
+	"\x05fat_g\x18\x05 \x01(\x01R\x04fatG\"7\n" +
 	"\x12CreateFoodResponse\x12!\n" +
 	"\x04food\x18\x01 \x01(\v2\r.food.v1.FoodR\x04food\"#\n" +
 	"\x11DeleteFoodRequest\x12\x0e\n" +

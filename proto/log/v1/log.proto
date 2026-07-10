@@ -16,7 +16,6 @@ message MacroTotals {
   double protein_g = 2;
   double carbs_g = 3;
   double fat_g = 4;
-  double fiber_g = 5;
 }
 
 message CreateLogEntryRequest {

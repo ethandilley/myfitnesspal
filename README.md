@@ -48,3 +48,51 @@ I setup a basic makefile that will run my cli, service, and build/run my compose
 
 ### Proto
 
+setup the protobufs and generate stubs
+
+Things I want
+
+Food
+- create
+- delete
+- list all
+- list singular
+
+To do this ill make a food protobuf with 
+id, name, cals, protein, carbs, fat, (eventually fiber)
+
+Create food will need
+Request - name, calories, protein, carbs, fat
+Response - food object
+
+Delete food will need
+Request - id
+response - nil
+
+List All foods
+Request - currently nothing, maybe evolve to add filters
+Response - list of foods
+
+Get Food
+Request - food id
+repsonse - food object
+
+
+Logs
+Create log will need
+Request - food id, multiplier, date logged at (if empty, today)
+Response - log entry
+
+Delete log will need
+Request - id
+response - nil
+
+List All log
+Request - currently nothing, maybe evolve to add filters
+Response - list of all log entries
+
+Get singular log
+Request - date
+repsonse - log entries and the total macros for today
+
+To generate the stubs you run `buf generate`

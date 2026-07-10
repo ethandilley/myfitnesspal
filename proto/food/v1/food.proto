@@ -11,7 +11,6 @@ message Food {
   double protein_g = 4;
   double carbs_g = 5;
   double fat_g = 6;
-  double fiber_g = 7;
 }
 
 message CreateFoodRequest {
@@ -20,7 +19,6 @@ message CreateFoodRequest {
   double protein_g = 3;
   double carbs_g = 4;
   double fat_g = 5;
-  double fiber_g = 6;
 }
 message CreateFoodResponse {
   Food food = 1;

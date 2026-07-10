@@ -95,7 +95,6 @@ type MacroTotals struct {
 	ProteinG      float64                `protobuf:"fixed64,2,opt,name=protein_g,json=proteinG,proto3" json:"protein_g,omitempty"`
 	CarbsG        float64                `protobuf:"fixed64,3,opt,name=carbs_g,json=carbsG,proto3" json:"carbs_g,omitempty"`
 	FatG          float64                `protobuf:"fixed64,4,opt,name=fat_g,json=fatG,proto3" json:"fat_g,omitempty"`
-	FiberG        float64                `protobuf:"fixed64,5,opt,name=fiber_g,json=fiberG,proto3" json:"fiber_g,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -154,13 +153,6 @@ func (x *MacroTotals) GetCarbsG() float64 {
 func (x *MacroTotals) GetFatG() float64 {
 	if x != nil {
 		return x.FatG
-	}
-	return 0
-}
-
-func (x *MacroTotals) GetFiberG() float64 {
-	if x != nil {
-		return x.FiberG
 	}
 	return 0
 }
@@ -536,13 +528,12 @@ const file_proto_log_v1_log_proto_rawDesc = "" +
 	"\n" +
 	"multiplier\x18\x03 \x01(\x01R\n" +
 	"multiplier\x12\x1b\n" +
-	"\tlogged_at\x18\x04 \x01(\tR\bloggedAt\"\x8d\x01\n" +
+	"\tlogged_at\x18\x04 \x01(\tR\bloggedAt\"t\n" +
 	"\vMacroTotals\x12\x1a\n" +
 	"\bcalories\x18\x01 \x01(\x01R\bcalories\x12\x1b\n" +
 	"\tprotein_g\x18\x02 \x01(\x01R\bproteinG\x12\x17\n" +
 	"\acarbs_g\x18\x03 \x01(\x01R\x06carbsG\x12\x13\n" +
-	"\x05fat_g\x18\x04 \x01(\x01R\x04fatG\x12\x17\n" +
-	"\afiber_g\x18\x05 \x01(\x01R\x06fiberG\"m\n" +
+	"\x05fat_g\x18\x04 \x01(\x01R\x04fatG\"m\n" +
 	"\x15CreateLogEntryRequest\x12\x17\n" +
 	"\afood_id\x18\x01 \x01(\x05R\x06foodId\x12\x1e\n" +
 	"\n" +
