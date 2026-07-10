@@ -1,5 +1,7 @@
 # Myfitnesspal
 
+> Disclaimer: I dont care about this looking nice on github. I'm just testing things. Have my API keys bro
+
 Roughly, I want a grpc/golang service that will let me 
 
 1. Create/Delete foods
