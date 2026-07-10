@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Build output / binaries
+bin/
+*.exe
+*.test
+
+# Docker itself (no need to send these into build context)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# IDE / editor cruft
+.vscode/
+.idea/
+*.swp
+
+# OS cruft
+.DS_Store
+
+# Local env / secrets
+.env
+.env.*
+
+# Docs
+README.md
+*.md
+
+# CI
+.github/

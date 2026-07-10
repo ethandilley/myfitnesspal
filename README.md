@@ -18,7 +18,7 @@ Out of scope
 
 I will first list them out with a basic description and later sections will go into more detail
 
-- [ ] Scaffolding: repo structure, docker compose, setup buf, basic go stuff for my service and cli, some make commands even
+- [x] Scaffolding: repo structure, docker compose, setup buf, basic go stuff for my service and cli, some make commands even
 - [ ] Proto: setup the protobufs and generate stubs
 - [ ] Server Skeleton: setup in memory endpoints and print a bit
 - [ ] Cli Skeleton: Some basic commands that just call the service
@@ -35,3 +35,16 @@ Things I want:
 - docker compose (service, postgres)
 - make file with some basic commands (building/running/compose things)
 - service and cli directories and basic main functions
+
+What I did and learned:
+
+The common "main" directory where your executeables go is the `cmd` folder.
+In this your main package and NOTHING else should live. You can instantiate configs, setup logging, setup your app really.
+But no other logic should live here.
+
+I setup a basic docker compose and dockerfile that will build/spin up my service and a postgres database (for later)
+
+I setup a basic makefile that will run my cli, service, and build/run my compose
+
+### Proto
+
