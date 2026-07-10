@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package log.v1;
+
+option go_package = "github.com/ethan/myfitnesspal/gen/log/v1;logv1";
+
+message LogEntry {
+  int32 id = 1;
+  int32 food_id = 2;
+  double multiplier = 3;
+  string logged_at = 4; // YYYY-MM-DD
+}
+
+message MacroTotals {
+  double calories = 1;
+  double protein_g = 2;
+  double carbs_g = 3;
+  double fat_g = 4;
+  double fiber_g = 5;
+}
+
+message CreateLogEntryRequest {
+  int32 food_id = 1;
+  double multiplier = 2;
+  string logged_at = 3; // optional; empty = today
+}
+message CreateLogEntryResponse {
+  LogEntry log_entry = 1;
+}
+
+message DeleteLogEntryRequest {
+  int32 id = 1;
+}
+message DeleteLogEntryResponse {}
+
+message ListLogEntriesRequest {}
+message ListLogEntriesResponse {
+  repeated LogEntry log_entries = 1;
+}
+
+message ListLogEntriesByDateRequest {
+  string date = 1; // YYYY-MM-DD, empty = today
+}
+message ListLogEntriesByDateResponse {
+  repeated LogEntry log_entries = 1;
+  MacroTotals totals = 2;
+}
+
+service LogService {
+  rpc CreateLogEntry(CreateLogEntryRequest) returns (CreateLogEntryResponse);
+  rpc DeleteLogEntry(DeleteLogEntryRequest) returns (DeleteLogEntryResponse);
+  rpc ListLogEntries(ListLogEntriesRequest) returns (ListLogEntriesResponse);
+  rpc ListLogEntriesByDate(ListLogEntriesByDateRequest) returns (ListLogEntriesByDateResponse);
+}

@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package food.v1;
+
+option go_package = "github.com/ethan/myfitnesspal/gen/food/v1;foodv1";
+
+message Food {
+  int32 id = 1;
+  string name = 2;
+  double calories = 3;
+  double protein_g = 4;
+  double carbs_g = 5;
+  double fat_g = 6;
+  double fiber_g = 7;
+}
+
+message CreateFoodRequest {
+  string name = 1;
+  double calories = 2;
+  double protein_g = 3;
+  double carbs_g = 4;
+  double fat_g = 5;
+  double fiber_g = 6;
+}
+message CreateFoodResponse {
+  Food food = 1;
+}
+
+message DeleteFoodRequest {
+  int32 id = 1;
+}
+message DeleteFoodResponse {}
+
+message ListFoodsRequest {}
+message ListFoodsResponse {
+  repeated Food foods = 1;
+}
+
+message GetFoodRequest {
+  int32 id = 1;
+}
+message GetFoodResponse {
+  Food food = 1;
+}
+
+service FoodService {
+  rpc CreateFood(CreateFoodRequest) returns (CreateFoodResponse);
+  rpc DeleteFood(DeleteFoodRequest) returns (DeleteFoodResponse);
+  rpc ListFoods(ListFoodsRequest) returns (ListFoodsResponse);
+  rpc GetFood(GetFoodRequest) returns (GetFoodResponse);
+}
