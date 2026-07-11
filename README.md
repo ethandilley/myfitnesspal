@@ -144,5 +144,5 @@ log.v1.LogService
 
 ### Cli Skeleton
 
-
-
+I'll write this later, I didn't really learn that much sadly. Let claude tank it for me
+Will come back to this
