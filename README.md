@@ -21,7 +21,7 @@ I will first list them out with a basic description and later sections will go i
 - [x] Scaffolding: repo structure, docker compose, setup buf, basic go stuff for my service and cli, some make commands even
 - [x] Proto: setup the protobufs and generate stubs
 - [x] Server Skeleton: setup in memory endpoints and print a bit
-- [ ] Cli Skeleton: Some basic commands that just call the service
+- [x] Cli Skeleton: Some basic commands that just call the service
 - [ ] Add Postgres: Wire up simple sqlc postgres calls
 - [ ] Polish Service: make entire calls make sense and beautiful
 - [ ] Polish Cli: make end to end make sense
@@ -146,3 +146,5 @@ log.v1.LogService
 
 I'll write this later, I didn't really learn that much sadly. Let claude tank it for me
 Will come back to this
+
+### Add postgres

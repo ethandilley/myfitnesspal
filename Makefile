@@ -12,3 +12,5 @@ build:
 compose:
 	docker compose up --build -d
 
+migrate:
+	goose -dir db/migrations postgres "$(DB_URL)" up
