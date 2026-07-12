@@ -37,7 +37,7 @@ func main() {
 	reflection.Register(grpcServer)
 
 	foodv1.RegisterFoodServiceServer(grpcServer, service.NewFoodService(queries))
-	logv1.RegisterLogServiceServer(grpcServer, service.NewLogService())
+	logv1.RegisterLogServiceServer(grpcServer, service.NewLogService(queries))
 
 	log.Println("server listening on :50051")
 	if err := grpcServer.Serve(lis); err != nil {

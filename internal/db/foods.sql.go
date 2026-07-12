@@ -12,7 +12,6 @@ import (
 )
 
 const createFood = `-- name: CreateFood :one
-
 INSERT INTO foods (name, calories, protein_g, carbs_g, fat_g)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id, name, calories, protein_g, carbs_g, fat_g, created_at
@@ -26,7 +25,6 @@ type CreateFoodParams struct {
 	FatG     pgtype.Numeric
 }
 
-// db/queries/foods.sql
 func (q *Queries) CreateFood(ctx context.Context, arg CreateFoodParams) (Food, error) {
 	row := q.db.QueryRow(ctx, createFood,
 		arg.Name,
