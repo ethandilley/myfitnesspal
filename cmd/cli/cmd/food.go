@@ -69,7 +69,7 @@ var foodLsCmd = &cobra.Command{
 		}
 
 		for _, f := range resp.Foods {
-			fmt.Printf("#%d  %-20s  cal:%.0f  protein:%.1fg  carbs:%.1fg  fat:%.1fg",
+			fmt.Printf("#%d  %-20s  cal:%.0f  protein:%.1fg  carbs:%.1fg  fat:%.1fg\n",
 				f.Id, f.Name, f.Calories, f.ProteinG, f.CarbsG, f.FatG)
 		}
 		return nil
