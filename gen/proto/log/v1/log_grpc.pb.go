@@ -23,6 +23,7 @@ const (
 	LogService_DeleteLogEntry_FullMethodName       = "/log.v1.LogService/DeleteLogEntry"
 	LogService_ListLogEntries_FullMethodName       = "/log.v1.LogService/ListLogEntries"
 	LogService_ListLogEntriesByDate_FullMethodName = "/log.v1.LogService/ListLogEntriesByDate"
+	LogService_ListLogEntriesByWeek_FullMethodName = "/log.v1.LogService/ListLogEntriesByWeek"
 )
 
 // LogServiceClient is the client API for LogService service.
@@ -33,6 +34,7 @@ type LogServiceClient interface {
 	DeleteLogEntry(ctx context.Context, in *DeleteLogEntryRequest, opts ...grpc.CallOption) (*DeleteLogEntryResponse, error)
 	ListLogEntries(ctx context.Context, in *ListLogEntriesRequest, opts ...grpc.CallOption) (*ListLogEntriesResponse, error)
 	ListLogEntriesByDate(ctx context.Context, in *ListLogEntriesByDateRequest, opts ...grpc.CallOption) (*ListLogEntriesByDateResponse, error)
+	ListLogEntriesByWeek(ctx context.Context, in *ListLogEntriesByWeekRequest, opts ...grpc.CallOption) (*ListLogEntriesByWeekResponse, error)
 }
 
 type logServiceClient struct {
@@ -83,6 +85,16 @@ func (c *logServiceClient) ListLogEntriesByDate(ctx context.Context, in *ListLog
 	return out, nil
 }
 
+func (c *logServiceClient) ListLogEntriesByWeek(ctx context.Context, in *ListLogEntriesByWeekRequest, opts ...grpc.CallOption) (*ListLogEntriesByWeekResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListLogEntriesByWeekResponse)
+	err := c.cc.Invoke(ctx, LogService_ListLogEntriesByWeek_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LogServiceServer is the server API for LogService service.
 // All implementations must embed UnimplementedLogServiceServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type LogServiceServer interface {
 	DeleteLogEntry(context.Context, *DeleteLogEntryRequest) (*DeleteLogEntryResponse, error)
 	ListLogEntries(context.Context, *ListLogEntriesRequest) (*ListLogEntriesResponse, error)
 	ListLogEntriesByDate(context.Context, *ListLogEntriesByDateRequest) (*ListLogEntriesByDateResponse, error)
+	ListLogEntriesByWeek(context.Context, *ListLogEntriesByWeekRequest) (*ListLogEntriesByWeekResponse, error)
 	mustEmbedUnimplementedLogServiceServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedLogServiceServer) ListLogEntries(context.Context, *ListLogEnt
 }
 func (UnimplementedLogServiceServer) ListLogEntriesByDate(context.Context, *ListLogEntriesByDateRequest) (*ListLogEntriesByDateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListLogEntriesByDate not implemented")
+}
+func (UnimplementedLogServiceServer) ListLogEntriesByWeek(context.Context, *ListLogEntriesByWeekRequest) (*ListLogEntriesByWeekResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListLogEntriesByWeek not implemented")
 }
 func (UnimplementedLogServiceServer) mustEmbedUnimplementedLogServiceServer() {}
 func (UnimplementedLogServiceServer) testEmbeddedByValue()                    {}
@@ -206,6 +222,24 @@ func _LogService_ListLogEntriesByDate_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LogService_ListLogEntriesByWeek_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLogEntriesByWeekRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogServiceServer).ListLogEntriesByWeek(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogService_ListLogEntriesByWeek_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogServiceServer).ListLogEntriesByWeek(ctx, req.(*ListLogEntriesByWeekRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LogService_ServiceDesc is the grpc.ServiceDesc for LogService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +262,10 @@ var LogService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListLogEntriesByDate",
 			Handler:    _LogService_ListLogEntriesByDate_Handler,
+		},
+		{
+			MethodName: "ListLogEntriesByWeek",
+			Handler:    _LogService_ListLogEntriesByWeek_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

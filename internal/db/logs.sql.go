@@ -45,6 +45,58 @@ func (q *Queries) DeleteLogEntry(ctx context.Context, id int32) error {
 	return err
 }
 
+const getDailyMacroTotalsByWeek = `-- name: GetDailyMacroTotalsByWeek :many
+SELECT
+    d.day::date AS day,
+    COALESCE(SUM(f.calories * l.multiplier), 0)::numeric AS calories,
+    COALESCE(SUM(f.protein_g * l.multiplier), 0)::numeric AS protein_g,
+    COALESCE(SUM(f.carbs_g * l.multiplier), 0)::numeric AS carbs_g,
+    COALESCE(SUM(f.fat_g * l.multiplier), 0)::numeric AS fat_g
+FROM generate_series(
+    $1::date - INTERVAL '6 days',
+    $1::date,
+    INTERVAL '1 day'
+) AS d(day)
+LEFT JOIN log_entries l ON l.logged_at = d.day::date
+LEFT JOIN foods f ON f.id = l.food_id
+GROUP BY d.day
+ORDER BY d.day
+`
+
+type GetDailyMacroTotalsByWeekRow struct {
+	Day      pgtype.Date
+	Calories pgtype.Numeric
+	ProteinG pgtype.Numeric
+	CarbsG   pgtype.Numeric
+	FatG     pgtype.Numeric
+}
+
+func (q *Queries) GetDailyMacroTotalsByWeek(ctx context.Context, loggedAt pgtype.Date) ([]GetDailyMacroTotalsByWeekRow, error) {
+	rows, err := q.db.Query(ctx, getDailyMacroTotalsByWeek, loggedAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDailyMacroTotalsByWeekRow
+	for rows.Next() {
+		var i GetDailyMacroTotalsByWeekRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.Calories,
+			&i.ProteinG,
+			&i.CarbsG,
+			&i.FatG,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLogEntry = `-- name: GetLogEntry :one
 SELECT id, food_id, multiplier, logged_at, created_at FROM log_entries where id = $1
 `
@@ -83,6 +135,37 @@ type GetMacroTotalsByDateRow struct {
 func (q *Queries) GetMacroTotalsByDate(ctx context.Context, loggedAt pgtype.Date) (GetMacroTotalsByDateRow, error) {
 	row := q.db.QueryRow(ctx, getMacroTotalsByDate, loggedAt)
 	var i GetMacroTotalsByDateRow
+	err := row.Scan(
+		&i.Calories,
+		&i.ProteinG,
+		&i.CarbsG,
+		&i.FatG,
+	)
+	return i, err
+}
+
+const getMacroTotalsByWeek = `-- name: GetMacroTotalsByWeek :one
+SELECT
+    COALESCE(SUM(f.calories * l.multiplier), 0)::numeric AS calories,
+    COALESCE(SUM(f.protein_g * l.multiplier), 0)::numeric AS protein_g,
+    COALESCE(SUM(f.carbs_g * l.multiplier), 0)::numeric AS carbs_g,
+    COALESCE(SUM(f.fat_g * l.multiplier), 0)::numeric AS fat_g
+FROM log_entries l
+JOIN foods f ON f.id = l.food_id
+WHERE l.logged_at BETWEEN $1::date - INTERVAL '6 days'
+                      AND $1::date
+`
+
+type GetMacroTotalsByWeekRow struct {
+	Calories pgtype.Numeric
+	ProteinG pgtype.Numeric
+	CarbsG   pgtype.Numeric
+	FatG     pgtype.Numeric
+}
+
+func (q *Queries) GetMacroTotalsByWeek(ctx context.Context, loggedAt pgtype.Date) (GetMacroTotalsByWeekRow, error) {
+	row := q.db.QueryRow(ctx, getMacroTotalsByWeek, loggedAt)
+	var i GetMacroTotalsByWeekRow
 	err := row.Scan(
 		&i.Calories,
 		&i.ProteinG,

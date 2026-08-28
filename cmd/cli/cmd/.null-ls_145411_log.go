@@ -21,6 +21,7 @@ var (
 	logFoodID     int32
 	logMultiplier float64
 	logDate       string
+	weekDate string
 )
 
 var logAddCmd = &cobra.Command{
@@ -133,42 +134,6 @@ var logTodayCmd = &cobra.Command{
 	},
 }
 
-// --- week ---
-
-var weekDate string
-
-var logWeekCmd = &cobra.Command{
-	Use:   "week",
-	Short: "Show macro totals for the last 7 days (defaults to ending today)",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		c, close, err := client.NewLogClient(serverAddr)
-		if err != nil {
-			return err
-		}
-		defer close()
-
-		resp, err := c.ListLogEntriesByWeek(context.Background(), &logv1.ListLogEntriesByWeekRequest{
-			Date: weekDate,
-		})
-		if err != nil {
-			return err
-		}
-
-		for _, d := range resp.DailyTotals {
-			t := d.Totals
-			fmt.Printf("%s  cal:%.0f  protein:%.1fg  carbs:%.1fg  fat:%.1fg\n",
-				d.Date, t.Calories, t.ProteinG, t.CarbsG, t.FatG)
-		}
-
-		if resp.Totals != nil {
-			t := resp.Totals
-			fmt.Printf("\nweek totals: cal:%.0f  protein:%.1fg  carbs:%.1fg  fat:%.1fg\n",
-				t.Calories, t.ProteinG, t.CarbsG, t.FatG)
-		}
-		return nil
-	},
-}
-
 func init() {
 	logAddCmd.Flags().Int32Var(&logFoodID, "food-id", 0, "food id")
 	logAddCmd.Flags().Float64Var(&logMultiplier, "multiplier", 1, "multiplier")
@@ -176,7 +141,6 @@ func init() {
 	logAddCmd.MarkFlagRequired("food-id")
 
 	logTodayCmd.Flags().StringVar(&todayDate, "date", "", "date (YYYY-MM-DD), defaults to today")
-	logWeekCmd.Flags().StringVar(&weekDate, "date", "", "end date of the 7-day window (YYYY-MM-DD), defaults to today")
 
-	logCmd.AddCommand(logAddCmd, logRmCmd, logLsCmd, logTodayCmd, logWeekCmd)
+	logCmd.AddCommand(logAddCmd, logRmCmd, logLsCmd, logTodayCmd)
 }

@@ -86,9 +86,50 @@ func (s *LogService) ListLogEntriesByDate(ctx context.Context, req *logv1.ListLo
 		Totals: &logv1.MacroTotals{
 			Calories: numericToFloat(totals.Calories),
 			ProteinG: numericToFloat(totals.ProteinG),
-			CarbsG: numericToFloat(totals.CarbsG),
-			FatG: numericToFloat(totals.FatG),
+			CarbsG:   numericToFloat(totals.CarbsG),
+			FatG:     numericToFloat(totals.FatG),
 		}}, nil
+}
+
+func (s *LogService) ListLogEntriesByWeek(ctx context.Context, req *logv1.ListLogEntriesByWeekRequest) (*logv1.ListLogEntriesByWeekResponse, error) {
+	log.Printf("ListLogEntriesByWeek called: %+v", req)
+
+	date, err := resolveDate(req.Date)
+	if err != nil {
+		return nil, err
+	}
+
+	totals, err := s.q.GetMacroTotalsByWeek(ctx, date)
+	if err != nil {
+		return nil, err
+	}
+
+	dailyRows, err := s.q.GetDailyMacroTotalsByWeek(ctx, date)
+	if err != nil {
+		return nil, err
+	}
+	dailyTotals := make([]*logv1.DailyMacroTotals, len(dailyRows))
+	for i, row := range dailyRows {
+		dailyTotals[i] = &logv1.DailyMacroTotals{
+			Date: dateToString(row.Day),
+			Totals: &logv1.MacroTotals{
+				Calories: numericToFloat(row.Calories),
+				ProteinG: numericToFloat(row.ProteinG),
+				CarbsG:   numericToFloat(row.CarbsG),
+				FatG:     numericToFloat(row.FatG),
+			},
+		}
+	}
+
+	return &logv1.ListLogEntriesByWeekResponse{
+		Totals: &logv1.MacroTotals{
+			Calories: numericToFloat(totals.Calories),
+			ProteinG: numericToFloat(totals.ProteinG),
+			CarbsG:   numericToFloat(totals.CarbsG),
+			FatG:     numericToFloat(totals.FatG),
+		},
+		DailyTotals: dailyTotals,
+	}, nil
 }
 
 func toProtoLogEntry(row db.LogEntry) *logv1.LogEntry {

@@ -45,9 +45,22 @@ message ListLogEntriesByDateResponse {
   MacroTotals totals = 2;
 }
 
+message DailyMacroTotals {
+  string date = 1; // YYYY-MM-DD
+  MacroTotals totals = 2;
+}
+message ListLogEntriesByWeekRequest {
+  string date = 1; // YYYY-MM-DD, empty = today. Week = the 7 days ending on this date, inclusive.
+}
+message ListLogEntriesByWeekResponse {
+  MacroTotals totals = 1;
+  repeated DailyMacroTotals daily_totals = 2; // oldest to newest
+}
+
 service LogService {
   rpc CreateLogEntry(CreateLogEntryRequest) returns (CreateLogEntryResponse);
   rpc DeleteLogEntry(DeleteLogEntryRequest) returns (DeleteLogEntryResponse);
   rpc ListLogEntries(ListLogEntriesRequest) returns (ListLogEntriesResponse);
   rpc ListLogEntriesByDate(ListLogEntriesByDateRequest) returns (ListLogEntriesByDateResponse);
+  rpc ListLogEntriesByWeek(ListLogEntriesByWeekRequest) returns (ListLogEntriesByWeekResponse);
 }
