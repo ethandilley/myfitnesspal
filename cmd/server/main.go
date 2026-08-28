@@ -18,7 +18,7 @@ import (
 func main() {
 	dbURL := os.Getenv("DB_URL")
 	if dbURL == "" {
-		log.Fatal("DATABASE_URL not set")
+		log.Fatal("DB_URL not set")
 	}
 	conn, err := pgx.Connect(context.Background(), dbURL)
 	if err != nil {
