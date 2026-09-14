@@ -7,14 +7,13 @@ import (
 
 	logv1 "github.com/ethandilley/myfitnesspal/gen/proto/log/v1"
 	"github.com/ethandilley/myfitnesspal/internal/db"
+	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const dateLayout = "2006-01-02"
 
 type LogService struct {
-	logv1.UnimplementedLogServiceServer
-
 	q *db.Queries
 }
 
@@ -22,36 +21,38 @@ func NewLogService(q *db.Queries) *LogService {
 	return &LogService{q: q}
 }
 
-func (s *LogService) CreateLogEntry(ctx context.Context, req *logv1.CreateLogEntryRequest) (*logv1.CreateLogEntryResponse, error) {
-	log.Printf("CreateLogEntry called: %+v", req)
+func (s *LogService) CreateLogEntry(ctx context.Context, req *connect.Request[logv1.CreateLogEntryRequest]) (*connect.Response[logv1.CreateLogEntryResponse], error) {
+	msg := req.Msg
+	log.Printf("CreateLogEntry called: %+v", msg)
 
-	loggedAt, err := stringToDate(req.LoggedAt)
+	loggedAt, err := stringToDate(msg.LoggedAt)
 	if err != nil {
 		return nil, err
 	}
 
 	row, err := s.q.CreateLogEntry(ctx, db.CreateLogEntryParams{
-		FoodID:     req.GetFoodId(),
-		Multiplier: floatToNumeric(req.Multiplier),
+		FoodID:     msg.GetFoodId(),
+		Multiplier: floatToNumeric(msg.Multiplier),
 		LoggedAt:   loggedAt,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &logv1.CreateLogEntryResponse{LogEntry: toProtoLogEntry(row)}, nil
+	return connect.NewResponse(&logv1.CreateLogEntryResponse{LogEntry: toProtoLogEntry(row)}), nil
 }
 
-func (s *LogService) DeleteLogEntry(ctx context.Context, req *logv1.DeleteLogEntryRequest) (*logv1.DeleteLogEntryResponse, error) {
-	log.Printf("DeleteLogEntry called: %+v", req)
-	err := s.q.DeleteLogEntry(ctx, req.Id)
+func (s *LogService) DeleteLogEntry(ctx context.Context, req *connect.Request[logv1.DeleteLogEntryRequest]) (*connect.Response[logv1.DeleteLogEntryResponse], error) {
+	msg := req.Msg
+	log.Printf("DeleteLogEntry called: %+v", msg)
+	err := s.q.DeleteLogEntry(ctx, msg.Id)
 	if err != nil {
 		return nil, err
 	}
-	return &logv1.DeleteLogEntryResponse{}, nil
+	return connect.NewResponse(&logv1.DeleteLogEntryResponse{}), nil
 }
 
-func (s *LogService) ListLogEntries(ctx context.Context, req *logv1.ListLogEntriesRequest) (*logv1.ListLogEntriesResponse, error) {
-	log.Printf("ListLogEntries called: %+v", req)
+func (s *LogService) ListLogEntries(ctx context.Context, req *connect.Request[logv1.ListLogEntriesRequest]) (*connect.Response[logv1.ListLogEntriesResponse], error) {
+	log.Printf("ListLogEntries called: %+v", req.Msg)
 	rows, err := s.q.ListLogEntries(ctx)
 	if err != nil {
 		return nil, err
@@ -60,12 +61,13 @@ func (s *LogService) ListLogEntries(ctx context.Context, req *logv1.ListLogEntri
 	for i, row := range rows {
 		entries[i] = toProtoLogEntry(row)
 	}
-	return &logv1.ListLogEntriesResponse{LogEntries: entries}, nil
+	return connect.NewResponse(&logv1.ListLogEntriesResponse{LogEntries: entries}), nil
 }
 
-func (s *LogService) ListLogEntriesByDate(ctx context.Context, req *logv1.ListLogEntriesByDateRequest) (*logv1.ListLogEntriesByDateResponse, error) {
-	log.Printf("ListLogEntriesByDate called: %+v", req)
-	date, err := resolveDate(req.Date)
+func (s *LogService) ListLogEntriesByDate(ctx context.Context, req *connect.Request[logv1.ListLogEntriesByDateRequest]) (*connect.Response[logv1.ListLogEntriesByDateResponse], error) {
+	msg := req.Msg
+	log.Printf("ListLogEntriesByDate called: %+v", msg)
+	date, err := resolveDate(msg.Date)
 	if err != nil {
 		return nil, err
 	}
@@ -82,13 +84,13 @@ func (s *LogService) ListLogEntriesByDate(ctx context.Context, req *logv1.ListLo
 	if err != nil {
 		return nil, err
 	}
-	return &logv1.ListLogEntriesByDateResponse{LogEntries: entries,
+	return connect.NewResponse(&logv1.ListLogEntriesByDateResponse{LogEntries: entries,
 		Totals: &logv1.MacroTotals{
 			Calories: numericToFloat(totals.Calories),
 			ProteinG: numericToFloat(totals.ProteinG),
-			CarbsG: numericToFloat(totals.CarbsG),
-			FatG: numericToFloat(totals.FatG),
-		}}, nil
+			CarbsG:   numericToFloat(totals.CarbsG),
+			FatG:     numericToFloat(totals.FatG),
+		}}), nil
 }
 
 func toProtoLogEntry(row db.LogEntry) *logv1.LogEntry {

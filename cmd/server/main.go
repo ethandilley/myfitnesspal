@@ -2,18 +2,30 @@ package main
 
 import (
 	"context"
+	foodv1connect "github.com/ethandilley/myfitnesspal/gen/proto/food/v1/foodv1connect"
+	logv1connect "github.com/ethandilley/myfitnesspal/gen/proto/log/v1/logv1connect"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"log"
-	"net"
+	"net/http"
 	"os"
 
-	foodv1 "github.com/ethandilley/myfitnesspal/gen/proto/food/v1"
-	logv1 "github.com/ethandilley/myfitnesspal/gen/proto/log/v1"
+	connectcors "connectrpc.com/cors"
 	"github.com/ethandilley/myfitnesspal/internal/db"
 	"github.com/ethandilley/myfitnesspal/internal/service"
 	"github.com/jackc/pgx/v5"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"github.com/rs/cors"
 )
+
+func withCORS(h http.Handler) http.Handler {
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:5173"}, // your dev frontend origin
+		AllowedMethods: connectcors.AllowedMethods(),
+		AllowedHeaders: connectcors.AllowedHeaders(),
+		ExposedHeaders: connectcors.ExposedHeaders(),
+	})
+	return c.Handler(h)
+}
 
 func main() {
 	dbURL := os.Getenv("DB_URL")
@@ -28,19 +40,12 @@ func main() {
 
 	queries := db.New(conn)
 
-	lis, err := net.Listen("tcp", ":50051")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	grpcServer := grpc.NewServer()
-	reflection.Register(grpcServer)
-
-	foodv1.RegisterFoodServiceServer(grpcServer, service.NewFoodService(queries))
-	logv1.RegisterLogServiceServer(grpcServer, service.NewLogService(queries))
+	mux := http.NewServeMux()
+	mux.Handle(foodv1connect.NewFoodServiceHandler(service.NewFoodService(queries)))
+	mux.Handle(logv1connect.NewLogServiceHandler(service.NewLogService(queries)))
 
 	log.Println("server listening on :50051")
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	if err := http.ListenAndServe(":50051", h2c.NewHandler(withCORS(mux), &http2.Server{})); err != nil {
+		log.Fatalf("server failed: %v", err)
 	}
 }

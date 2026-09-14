@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>myfitnesspal</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.4rem; }
+  nav { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  nav button { flex: 1; padding: 0.6rem; cursor: pointer; border: 1px solid #888; background: #eee; border-radius: 6px; }
+  nav button.active { background: #333; color: #fff; border-color: #333; }
+  section { display: none; }
+  section.active { display: block; }
+  label { display: block; margin-top: 0.75rem; font-size: 0.9rem; }
+  input, select { width: 100%; padding: 0.5rem; margin-top: 0.25rem; box-sizing: border-box; }
+  button.submit { margin-top: 1rem; padding: 0.6rem 1.2rem; cursor: pointer; }
+  .msg { margin-top: 0.75rem; font-size: 0.9rem; }
+  .msg.ok { color: #1a7f37; }
+  .msg.err { color: #c0392b; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+  th, td { text-align: left; padding: 0.4rem 0.3rem; border-bottom: 1px solid #ddd; font-size: 0.9rem; }
+  .totals { display: flex; gap: 1rem; margin-top: 1rem; font-weight: bold; }
+  .totals div { flex: 1; text-align: center; padding: 0.5rem; background: #f2f2f2; border-radius: 6px; }
+  .empty { color: #888; font-style: italic; margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<h1>myfitnesspal</h1>
+
+<nav>
+  <button data-tab="create" class="active">Create Food</button>
+  <button data-tab="log">Log Food</button>
+  <button data-tab="daily">Daily Log</button>
+</nav>
+
+<section id="create" class="active">
+  <form id="create-form">
+    <label>Name <input type="text" id="c-name" required></label>
+    <label>Calories <input type="number" id="c-cal" value="0" step="any"></label>
+    <label>Protein (g) <input type="number" id="c-protein" value="0" step="any"></label>
+    <label>Carbs (g) <input type="number" id="c-carbs" value="0" step="any"></label>
+    <label>Fat (g) <input type="number" id="c-fat" value="0" step="any"></label>
+    <button class="submit" type="submit">Add Food</button>
+  </form>
+  <div id="create-msg" class="msg"></div>
+</section>
+
+<section id="log">
+  <form id="log-form">
+    <label>Food
+      <select id="l-food"></select>
+    </label>
+    <label>Multiplier <input type="number" id="l-mult" value="1" step="any"></label>
+    <label>Date <input type="date" id="l-date"></label>
+    <button class="submit" type="submit">Log It</button>
+  </form>
+  <div id="log-msg" class="msg"></div>
+</section>
+
+<section id="daily">
+  <label>Date <input type="date" id="d-date"></label>
+  <div class="totals">
+    <div>Cal<br><span id="t-cal">0</span></div>
+    <div>Protein<br><span id="t-protein">0</span>g</div>
+    <div>Carbs<br><span id="t-carbs">0</span>g</div>
+    <div>Fat<br><span id="t-fat">0</span>g</div>
+  </div>
+  <table id="d-table" style="display:none">
+    <thead><tr><th>Food</th><th>x</th><th>Cal</th><th>P</th><th>C</th><th>F</th></tr></thead>
+    <tbody id="d-body"></tbody>
+  </table>
+  <div id="d-empty" class="empty" style="display:none">No food logged for this day</div>
+</section>
+
+<script>
+const BASE = "http://localhost:50051";
+
+async function rpc(service, method, body) {
+  const res = await fetch(`${BASE}/${service}/${method}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let detail = "";
+    try { detail = (await res.json()).message || ""; } catch {}
+    throw new Error(detail || `${service}/${method} failed (${res.status})`);
+  }
+  return res.json();
+}
+
+const Food = {
+  create: (req) => rpc("food.v1.FoodService", "CreateFood", req),
+  list: () => rpc("food.v1.FoodService", "ListFoods", {}),
+};
+const Log = {
+  create: (req) => rpc("log.v1.LogService", "CreateLogEntry", req),
+  byDate: (date) => rpc("log.v1.LogService", "ListLogEntriesByDate", { date }),
+};
+
+// ---- state ----
+let foods = [];
+const todayStr = () => new Date().toISOString().slice(0, 10);
+let selectedDate = todayStr();
+
+// ---- tabs ----
+document.querySelectorAll("nav button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav button").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll("section").forEach((s) => s.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ---- foods list / dropdown ----
+async function refreshFoods() {
+  const res = await Food.list();
+  foods = res.foods || [];
+  const sel = document.getElementById("l-food");
+  sel.innerHTML = "";
+  if (foods.length === 0) {
+    sel.innerHTML = `<option value="">Add a food first</option>`;
+    sel.disabled = true;
+  } else {
+    sel.disabled = false;
+    for (const f of foods) {
+      const opt = document.createElement("option");
+      opt.value = f.id;
+      opt.textContent = f.name;
+      sel.appendChild(opt);
+    }
+  }
+}
+
+// ---- create food ----
+document.getElementById("create-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("create-msg");
+  msg.textContent = "";
+  msg.className = "msg";
+  try {
+    await Food.create({
+      name: document.getElementById("c-name").value,
+      calories: Number(document.getElementById("c-cal").value) || 0,
+      proteinG: Number(document.getElementById("c-protein").value) || 0,
+      carbsG: Number(document.getElementById("c-carbs").value) || 0,
+      fatG: Number(document.getElementById("c-fat").value) || 0,
+    });
+    document.getElementById("create-form").reset();
+    document.getElementById("c-cal").value = 0;
+    document.getElementById("c-protein").value = 0;
+    document.getElementById("c-carbs").value = 0;
+    document.getElementById("c-fat").value = 0;
+    msg.textContent = "Added!";
+    msg.classList.add("ok");
+    await refreshFoods();
+  } catch (err) {
+    msg.textContent = err.message;
+    msg.classList.add("err");
+  }
+});
+
+// ---- log food ----
+document.getElementById("log-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById("log-msg");
+  msg.textContent = "";
+  msg.className = "msg";
+  const foodId = Number(document.getElementById("l-food").value);
+  if (!foodId) {
+    msg.textContent = "Add a food first";
+    msg.classList.add("err");
+    return;
+  }
+  const loggedAt = document.getElementById("l-date").value || "";
+  try {
+    await Log.create({
+      foodId,
+      multiplier: Number(document.getElementById("l-mult").value) || 1,
+      loggedAt,
+    });
+    msg.textContent = "Logged!";
+    msg.classList.add("ok");
+    const effectiveDate = loggedAt || todayStr();
+    if (effectiveDate === selectedDate) await refreshDailyLog();
+  } catch (err) {
+    msg.textContent = err.message;
+    msg.classList.add("err");
+  }
+});
+
+// ---- daily log ----
+async function refreshDailyLog() {
+  const res = await Log.byDate(selectedDate);
+  const entries = res.logEntries || [];
+  const totals = res.totals || {};
+  document.getElementById("t-cal").textContent = Math.round(totals.calories || 0);
+  document.getElementById("t-protein").textContent = Math.round(totals.proteinG || 0);
+  document.getElementById("t-carbs").textContent = Math.round(totals.carbsG || 0);
+  document.getElementById("t-fat").textContent = Math.round(totals.fatG || 0);
+
+  const body = document.getElementById("d-body");
+  const table = document.getElementById("d-table");
+  const empty = document.getElementById("d-empty");
+  body.innerHTML = "";
+
+  if (entries.length === 0) {
+    table.style.display = "none";
+    empty.style.display = "block";
+    return;
+  }
+  table.style.display = "table";
+  empty.style.display = "none";
+
+  const byId = Object.fromEntries(foods.map((f) => [f.id, f]));
+  for (const entry of entries) {
+    const f = byId[entry.foodId];
+    const mult = entry.multiplier || 1;
+    const tr = document.createElement("tr");
+    if (!f) {
+      tr.innerHTML = `<td>Unknown food (#${entry.foodId})</td><td>${mult}</td><td colspan="4">—</td>`;
+    } else {
+      tr.innerHTML = `
+        <td>${f.name}</td>
+        <td>${mult}</td>
+        <td>${Math.round(f.calories * mult)}</td>
+        <td>${Math.round(f.proteinG * mult)}</td>
+        <td>${Math.round(f.carbsG * mult)}</td>
+        <td>${Math.round(f.fatG * mult)}</td>`;
+    }
+    body.appendChild(tr);
+  }
+}
+
+document.getElementById("d-date").addEventListener("change", async (e) => {
+  selectedDate = e.target.value || todayStr();
+  await refreshDailyLog();
+});
+
+// ---- init ----
+(async function init() {
+  document.getElementById("d-date").value = selectedDate;
+  document.getElementById("l-date").value = selectedDate;
+  await refreshFoods();
+  await refreshDailyLog();
+})();
+</script>
+
+</body>
+</html>

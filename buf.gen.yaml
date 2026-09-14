@@ -6,3 +6,8 @@ plugins:
   - remote: buf.build/grpc/go
     out: gen
     opt: paths=source_relative
+  - remote: buf.build/connectrpc/go
+    out: gen
+    opt: paths=source_relative
+  - remote: buf.build/connectrpc/es      # generates the TypeScript client
+    out: frontend/src/gen
