@@ -7,12 +7,11 @@ import (
 
 	foodv1 "github.com/ethandilley/myfitnesspal/gen/proto/food/v1"
 	"github.com/ethandilley/myfitnesspal/internal/db"
+	"connectrpc.com/connect"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type FoodService struct {
-	foodv1.UnimplementedFoodServiceServer
-
 	q *db.Queries
 }
 
@@ -21,22 +20,23 @@ func NewFoodService(q *db.Queries) *FoodService {
 	return &FoodService{q: q}
 }
 
-func (s *FoodService) CreateFood(ctx context.Context, req *foodv1.CreateFoodRequest) (*foodv1.CreateFoodResponse, error) {
-	log.Printf("Creating new food %v with %v calories", req.Name, req.Calories)
+func (s *FoodService) CreateFood(ctx context.Context, req *connect.Request[foodv1.CreateFoodRequest]) (*connect.Response[foodv1.CreateFoodResponse], error) {
+	msg := req.Msg
+	log.Printf("Creating new food %v with %v calories", msg.Name, msg.Calories)
 	row, err := s.q.CreateFood(ctx, db.CreateFoodParams{
-		Name:     req.Name,
-		Calories: floatToNumeric(req.Calories),
-		ProteinG: floatToNumeric(req.ProteinG),
-		CarbsG:   floatToNumeric(req.CarbsG),
-		FatG:     floatToNumeric(req.FatG),
+		Name:     msg.Name,
+		Calories: floatToNumeric(msg.Calories),
+		ProteinG: floatToNumeric(msg.ProteinG),
+		CarbsG:   floatToNumeric(msg.CarbsG),
+		FatG:     floatToNumeric(msg.FatG),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &foodv1.CreateFoodResponse{Food: toProtoFood(row)}, nil
+	return connect.NewResponse(&foodv1.CreateFoodResponse{Food: toProtoFood(row)}), nil
 }
 
-func (s *FoodService) ListFoods(ctx context.Context, req *foodv1.ListFoodsRequest) (*foodv1.ListFoodsResponse, error) {
+func (s *FoodService) ListFoods(ctx context.Context, req *connect.Request[foodv1.ListFoodsRequest]) (*connect.Response[foodv1.ListFoodsResponse], error) {
 	log.Printf("Listing all foods")
 	rows, err := s.q.ListFoods(ctx)
 	if err != nil {
@@ -46,25 +46,27 @@ func (s *FoodService) ListFoods(ctx context.Context, req *foodv1.ListFoodsReques
 	for i, row := range rows {
 		foods[i] = toProtoFood(row)
 	}
-	return &foodv1.ListFoodsResponse{Foods: foods}, nil
+	return connect.NewResponse(&foodv1.ListFoodsResponse{Foods: foods}), nil
 }
 
-func (s *FoodService) GetFood(ctx context.Context, req *foodv1.GetFoodRequest) (*foodv1.GetFoodResponse, error) {
-	log.Printf("Getting food with id %v", req.Id)
-	row, err := s.q.GetFood(ctx, req.Id)
+func (s *FoodService) GetFood(ctx context.Context, req *connect.Request[foodv1.GetFoodRequest]) (*connect.Response[foodv1.GetFoodResponse], error) {
+	msg := req.Msg
+	log.Printf("Getting food with id %v", msg.Id)
+	row, err := s.q.GetFood(ctx, msg.Id)
 	if err != nil {
 		return nil, err
 	}
-	return &foodv1.GetFoodResponse{Food: toProtoFood(row)}, nil
+	return connect.NewResponse(&foodv1.GetFoodResponse{Food: toProtoFood(row)}), nil
 }
 
-func (s *FoodService) DeleteFood(ctx context.Context, req *foodv1.DeleteFoodRequest) (*foodv1.DeleteFoodResponse, error) {
-	log.Printf("Deleting food with id %v", req.Id)
-	err := s.q.DeleteFood(ctx, req.Id)
+func (s *FoodService) DeleteFood(ctx context.Context, req *connect.Request[foodv1.DeleteFoodRequest]) (*connect.Response[foodv1.DeleteFoodResponse], error) {
+	msg := req.Msg
+	log.Printf("Deleting food with id %v", msg.Id)
+	err := s.q.DeleteFood(ctx, msg.Id)
 	if err != nil {
 		return nil, err
 	}
-	return &foodv1.DeleteFoodResponse{}, nil
+	return connect.NewResponse(&foodv1.DeleteFoodResponse{}), nil
 }
 
 func toProtoFood(row db.Food) *foodv1.Food {

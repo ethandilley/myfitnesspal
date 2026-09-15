@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package food.v1;
 
-option go_package = "github.com/ethan/myfitnesspal/gen/food/v1;foodv1";
+option go_package = "github.com/ethandilley/myfitnesspal/gen/proto/food/v1;foodv1";
 
 message Food {
   int32 id = 1;

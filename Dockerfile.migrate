@@ -1,0 +1,5 @@
+FROM golang:1.26.5-alpine
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+WORKDIR /app
+COPY db/migrations ./db/migrations
+ENTRYPOINT ["sh", "-c", "goose -dir db/migrations postgres \"$DB_URL\" up"]

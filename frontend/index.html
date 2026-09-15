@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>myfitnesspal</title>
+
+<style>
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    font-family: system-ui, sans-serif;
+    max-width: 640px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  nav button {
+    flex: 1;
+    padding: 0.6rem;
+    cursor: pointer;
+    border: 1px solid #888;
+    background: #eee;
+    color: #111;
+    border-radius: 6px;
+  }
+
+  nav button.active {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+  }
+
+  section {
+    display: none;
+  }
+
+  section.active {
+    display: block;
+  }
+
+  label {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.25rem;
+    box-sizing: border-box;
+  }
+
+  button.submit {
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+  }
+
+  .msg {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .msg.ok {
+    color: #1a7f37;
+  }
+
+  .msg.err {
+    color: #c0392b;
+  }
+
+  /* Food list */
+  #food-list {
+    margin-top: 1.5rem;
+  }
+
+  .food-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .food-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .food-name {
+    font-weight: 600;
+  }
+
+  .food-macros {
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+  }
+
+  /* Delete button */
+  .delete-btn {
+    flex-shrink: 0;
+    padding: 0.35rem 0.7rem;
+    cursor: pointer;
+    border: 1px solid #c0392b;
+    color: #c0392b;
+    background: transparent;
+    border-radius: 5px;
+  }
+
+  .delete-btn:hover {
+    background: #c0392b;
+    color: white;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.4rem 0.3rem;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.9rem;
+  }
+
+  th:last-child,
+  td:last-child {
+    text-align: right;
+  }
+
+  .totals {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .totals div {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+    background: #f2f2f2;
+    color: #111;
+    border-radius: 6px;
+    font-weight: bold;
+  }
+
+  .empty {
+    color: #888;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+
+  .loading {
+    color: #888;
+    font-style: italic;
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 600px) {
+    .totals {
+      gap: 0.4rem;
+    }
+
+    .totals div {
+      font-size: 0.85rem;
+    }
+
+    table {
+      font-size: 0.8rem;
+    }
+
+    th,
+    td {
+      padding: 0.35rem 0.2rem;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<h1>myfitnesspal</h1>
+
+<nav>
+  <button data-tab="create" class="active">Create Food</button>
+  <button data-tab="log">Log Food</button>
+  <button data-tab="daily">Daily Log</button>
+</nav>
+
+<!-- ==================== CREATE FOOD ==================== -->
+
+<section id="create" class="active">
+
+  <form id="create-form">
+
+    <label>
+      Name
+      <input type="text" id="c-name" required>
+    </label>
+
+    <label>
+      Calories
+      <input type="number" id="c-cal" value="0" step="any">
+    </label>
+
+    <label>
+      Protein (g)
+      <input type="number" id="c-protein" value="0" step="any">
+    </label>
+
+    <label>
+      Carbs (g)
+      <input type="number" id="c-carbs" value="0" step="any">
+    </label>
+
+    <label>
+      Fat (g)
+      <input type="number" id="c-fat" value="0" step="any">
+    </label>
+
+    <button class="submit" type="submit">
+      Add Food
+    </button>
+
+  </form>
+
+  <div id="create-msg" class="msg"></div>
+
+  <div id="food-list"></div>
+
+</section>
+
+<!-- ==================== LOG FOOD ==================== -->
+
+<section id="log">
+
+  <form id="log-form">
+
+    <label>
+      Food
+      <select id="l-food"></select>
+    </label>
+
+    <label>
+      Multiplier
+      <input
+        type="number"
+        id="l-mult"
+        value="1"
+        step="any"
+        min="0"
+      >
+    </label>
+
+    <label>
+      Date
+      <input type="date" id="l-date">
+    </label>
+
+    <button class="submit" type="submit">
+      Log It
+    </button>
+
+  </form>
+
+  <div id="log-msg" class="msg"></div>
+
+</section>
+
+<!-- ==================== DAILY LOG ==================== -->
+
+<section id="daily">
+
+  <label>
+    Date
+    <input type="date" id="d-date">
+  </label>
+
+  <div class="totals">
+
+    <div>
+      Cal<br>
+      <span id="t-cal">0</span>
+    </div>
+
+    <div>
+      Protein<br>
+      <span id="t-protein">0</span>g
+    </div>
+
+    <div>
+      Carbs<br>
+      <span id="t-carbs">0</span>g
+    </div>
+
+    <div>
+      Fat<br>
+      <span id="t-fat">0</span>g
+    </div>
+
+  </div>
+
+  <table id="d-table" style="display:none">
+
+    <thead>
+      <tr>
+        <th>Food</th>
+        <th>x</th>
+        <th>Cal</th>
+        <th>P</th>
+        <th>C</th>
+        <th>F</th>
+        <th></th>
+      </tr>
+    </thead>
+
+    <tbody id="d-body"></tbody>
+
+  </table>
+
+  <div
+    id="d-empty"
+    class="empty"
+    style="display:none"
+  >
+    No food logged for this day
+  </div>
+
+</section>
+
+<script>
+
+const BASE = "https://myfitnesspal-api.dilleystone.com";
+
+/* ============================================================
+   Generic RPC helper
+   ============================================================ */
+
+async function rpc(service, method, body) {
+
+  const res = await fetch(`${BASE}/${service}/${method}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+
+    let detail = "";
+
+    try {
+      const json = await res.json();
+      detail = json.message || "";
+    } catch {}
+
+    throw new Error(
+      detail ||
+      `${service}/${method} failed (${res.status})`
+    );
+  }
+
+  return res.json();
+}
+
+
+/* ============================================================
+   API
+   ============================================================ */
+
+const Food = {
+
+  create: (req) =>
+    rpc(
+      "food.v1.FoodService",
+      "CreateFood",
+      req
+    ),
+
+  list: () =>
+    rpc(
+      "food.v1.FoodService",
+      "ListFoods",
+      {}
+    ),
+
+  delete: (id) =>
+    rpc(
+      "food.v1.FoodService",
+      "DeleteFood",
+      { id }
+    ),
+};
+
+
+const Log = {
+
+  create: (req) =>
+    rpc(
+      "log.v1.LogService",
+      "CreateLogEntry",
+      req
+    ),
+
+  byDate: (date) =>
+    rpc(
+      "log.v1.LogService",
+      "ListLogEntriesByDate",
+      { date }
+    ),
+
+  delete: (id) =>
+    rpc(
+      "log.v1.LogService",
+      "DeleteLogEntry",
+      { id }
+    ),
+};
+
+
+/* ============================================================
+   State
+   ============================================================ */
+
+let foods = [];
+
+const todayStr = () =>
+  new Date().toISOString().slice(0, 10);
+
+let selectedDate = todayStr();
+
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+
+document
+  .querySelectorAll("nav button")
+  .forEach((btn) => {
+
+    btn.addEventListener("click", () => {
+
+      document
+        .querySelectorAll("nav button")
+        .forEach((b) =>
+          b.classList.remove("active")
+        );
+
+      document
+        .querySelectorAll("section")
+        .forEach((s) =>
+          s.classList.remove("active")
+        );
+
+      btn.classList.add("active");
+
+      document
+        .getElementById(btn.dataset.tab)
+        .classList.add("active");
+
+    });
+
+  });
+
+
+/* ============================================================
+   Foods
+   ============================================================ */
+
+async function refreshFoods() {
+
+  const res = await Food.list();
+
+  foods = res.foods || [];
+
+
+  /* ---------- Update dropdown ---------- */
+
+  const sel =
+    document.getElementById("l-food");
+
+  sel.innerHTML = "";
+
+
+  if (foods.length === 0) {
+
+    sel.innerHTML =
+      `<option value="">Add a food first</option>`;
+
+    sel.disabled = true;
+
+  } else {
+
+    sel.disabled = false;
+
+    for (const f of foods) {
+
+      const opt =
+        document.createElement("option");
+
+      opt.value = f.id;
+      opt.textContent = f.name;
+
+      sel.appendChild(opt);
+    }
+  }
+
+
+  /* ---------- Update food list ---------- */
+
+  const list =
+    document.getElementById("food-list");
+
+  list.innerHTML = "";
+
+
+  if (foods.length === 0) {
+
+    list.innerHTML =
+      `<div class="empty">No foods created yet</div>`;
+
+    return;
+  }
+
+
+  for (const f of foods) {
+
+    const item =
+      document.createElement("div");
+
+    item.className = "food-item";
+
+
+    /* Food information */
+
+    const info =
+      document.createElement("div");
+
+    info.className = "food-info";
+
+
+    const name =
+      document.createElement("div");
+
+    name.className = "food-name";
+
+    name.textContent = f.name;
+
+
+    const macros =
+      document.createElement("div");
+
+    macros.className = "food-macros";
+
+    macros.textContent =
+      `${Math.round(f.calories)} cal · ` +
+      `${Math.round(f.proteinG)}g P · ` +
+      `${Math.round(f.carbsG)}g C · ` +
+      `${Math.round(f.fatG)}g F`;
+
+
+    info.appendChild(name);
+    info.appendChild(macros);
+
+
+    /* Delete button */
+
+    const deleteButton =
+      document.createElement("button");
+
+    deleteButton.className =
+      "delete-btn";
+
+    deleteButton.type = "button";
+
+    deleteButton.textContent =
+      "Delete";
+
+
+    deleteButton.addEventListener(
+      "click",
+      async () => {
+
+        const confirmed =
+          confirm(
+            `Delete "${f.name}"?`
+          );
+
+        if (!confirmed) {
+          return;
+        }
+
+
+        deleteButton.disabled = true;
+
+        try {
+
+          await Food.delete(f.id);
+
+          await refreshFoods();
+
+          await refreshDailyLog();
+
+        } catch (err) {
+
+          alert(
+            `Could not delete food:\n\n${err.message}`
+          );
+
+          deleteButton.disabled = false;
+        }
+
+      }
+    );
+
+
+    item.appendChild(info);
+    item.appendChild(deleteButton);
+
+    list.appendChild(item);
+  }
+}
+
+
+/* ============================================================
+   Create Food
+   ============================================================ */
+
+document
+  .getElementById("create-form")
+  .addEventListener(
+    "submit",
+    async (e) => {
+
+      e.preventDefault();
+
+
+      const msg =
+        document.getElementById("create-msg");
+
+      msg.textContent = "";
+      msg.className = "msg";
+
+
+      try {
+
+        await Food.create({
+
+          name:
+            document.getElementById(
+              "c-name"
+            ).value,
+
+          calories:
+            Number(
+              document.getElementById(
+                "c-cal"
+              ).value
+            ) || 0,
+
+          proteinG:
+            Number(
+              document.getElementById(
+                "c-protein"
+              ).value
+            ) || 0,
+
+          carbsG:
+            Number(
+              document.getElementById(
+                "c-carbs"
+              ).value
+            ) || 0,
+
+          fatG:
+            Number(
+              document.getElementById(
+                "c-fat"
+              ).value
+            ) || 0,
+
+        });
+
+
+        /* Reset form */
+
+        document
+          .getElementById("create-form")
+          .reset();
+
+
+        document.getElementById(
+          "c-cal"
+        ).value = 0;
+
+        document.getElementById(
+          "c-protein"
+        ).value = 0;
+
+        document.getElementById(
+          "c-carbs"
+        ).value = 0;
+
+        document.getElementById(
+          "c-fat"
+        ).value = 0;
+
+
+        msg.textContent = "Added!";
+
+        msg.classList.add("ok");
+
+
+        await refreshFoods();
+
+      } catch (err) {
+
+        msg.textContent =
+          err.message;
+
+        msg.classList.add("err");
+      }
+
+    }
+  );
+
+
+/* ============================================================
+   Log Food
+   ============================================================ */
+
+document
+  .getElementById("log-form")
+  .addEventListener(
+    "submit",
+    async (e) => {
+
+      e.preventDefault();
+
+
+      const msg =
+        document.getElementById("log-msg");
+
+      msg.textContent = "";
+      msg.className = "msg";
+
+
+      const foodId =
+        Number(
+          document.getElementById(
+            "l-food"
+          ).value
+        );
+
+
+      if (!foodId) {
+
+        msg.textContent =
+          "Add a food first";
+
+        msg.classList.add("err");
+
+        return;
+      }
+
+
+      const loggedAt =
+        document.getElementById(
+          "l-date"
+        ).value || "";
+
+
+      try {
+
+        await Log.create({
+
+          foodId,
+
+          multiplier:
+            Number(
+              document.getElementById(
+                "l-mult"
+              ).value
+            ) || 1,
+
+          loggedAt,
+
+        });
+
+
+        msg.textContent =
+          "Logged!";
+
+        msg.classList.add("ok");
+
+
+        const effectiveDate =
+          loggedAt || todayStr();
+
+
+        if (
+          effectiveDate ===
+          selectedDate
+        ) {
+
+          await refreshDailyLog();
+        }
+
+      } catch (err) {
+
+        msg.textContent =
+          err.message;
+
+        msg.classList.add("err");
+      }
+
+    }
+  );
+
+
+/* ============================================================
+   Daily Log
+   ============================================================ */
+
+async function refreshDailyLog() {
+
+  const res =
+    await Log.byDate(
+      selectedDate
+    );
+
+
+  const entries =
+    res.logEntries || [];
+
+  const totals =
+    res.totals || {};
+
+
+  /* ---------- Totals ---------- */
+
+  document.getElementById(
+    "t-cal"
+  ).textContent =
+    Math.round(
+      totals.calories || 0
+    );
+
+
+  document.getElementById(
+    "t-protein"
+  ).textContent =
+    Math.round(
+      totals.proteinG || 0
+    );
+
+
+  document.getElementById(
+    "t-carbs"
+  ).textContent =
+    Math.round(
+      totals.carbsG || 0
+    );
+
+
+  document.getElementById(
+    "t-fat"
+  ).textContent =
+    Math.round(
+      totals.fatG || 0
+    );
+
+
+  /* ---------- Table ---------- */
+
+  const body =
+    document.getElementById(
+      "d-body"
+    );
+
+  const table =
+    document.getElementById(
+      "d-table"
+    );
+
+  const empty =
+    document.getElementById(
+      "d-empty"
+    );
+
+
+  body.innerHTML = "";
+
+
+  if (entries.length === 0) {
+
+    table.style.display = "none";
+
+    empty.style.display = "block";
+
+    return;
+  }
+
+
+  table.style.display = "table";
+
+  empty.style.display = "none";
+
+
+  /* Map food IDs to foods */
+
+  const byId =
+    Object.fromEntries(
+      foods.map((f) => [
+        f.id,
+        f
+      ])
+    );
+
+
+  /* ---------- Render entries ---------- */
+
+  for (const entry of entries) {
+
+    const f =
+      byId[entry.foodId];
+
+    const mult =
+      entry.multiplier || 1;
+
+
+    const tr =
+      document.createElement("tr");
+
+
+    if (!f) {
+
+      const foodCell =
+        document.createElement("td");
+
+      foodCell.textContent =
+        `Unknown food (#${entry.foodId})`;
+
+      const multCell =
+        document.createElement("td");
+
+      multCell.textContent =
+        mult;
+
+      const unknownCell =
+        document.createElement("td");
+
+      unknownCell.colSpan = 4;
+
+      unknownCell.textContent = "—";
+
+      tr.appendChild(foodCell);
+      tr.appendChild(multCell);
+      tr.appendChild(unknownCell);
+
+    } else {
+
+      const foodCell =
+        document.createElement("td");
+
+      foodCell.textContent =
+        f.name;
+
+
+      const multCell =
+        document.createElement("td");
+
+      multCell.textContent =
+        mult;
+
+
+      const calCell =
+        document.createElement("td");
+
+      calCell.textContent =
+        Math.round(
+          f.calories * mult
+        );
+
+
+      const proteinCell =
+        document.createElement("td");
+
+      proteinCell.textContent =
+        Math.round(
+          f.proteinG * mult
+        );
+
+
+      const carbsCell =
+        document.createElement("td");
+
+      carbsCell.textContent =
+        Math.round(
+          f.carbsG * mult
+        );
+
+
+      const fatCell =
+        document.createElement("td");
+
+      fatCell.textContent =
+        Math.round(
+          f.fatG * mult
+        );
+
+
+      tr.appendChild(foodCell);
+      tr.appendChild(multCell);
+      tr.appendChild(calCell);
+      tr.appendChild(proteinCell);
+      tr.appendChild(carbsCell);
+      tr.appendChild(fatCell);
+    }
+
+
+    /* ---------- Delete log button ---------- */
+
+    const deleteCell =
+      document.createElement("td");
+
+
+    const deleteButton =
+      document.createElement("button");
+
+    deleteButton.className =
+      "delete-btn";
+
+    deleteButton.type = "button";
+
+    deleteButton.textContent =
+      "Delete";
+
+
+    deleteButton.addEventListener(
+      "click",
+      async () => {
+
+        const foodName =
+          f
+            ? f.name
+            : `food #${entry.foodId}`;
+
+
+        const confirmed =
+          confirm(
+            `Delete this ${foodName} log entry?`
+          );
+
+
+        if (!confirmed) {
+          return;
+        }
+
+
+        deleteButton.disabled = true;
+
+
+        try {
+
+          await Log.delete(
+            entry.id
+          );
+
+          await refreshDailyLog();
+
+        } catch (err) {
+
+          alert(
+            `Could not delete log:\n\n${err.message}`
+          );
+
+          deleteButton.disabled = false;
+        }
+
+      }
+    );
+
+
+    deleteCell.appendChild(
+      deleteButton
+    );
+
+    tr.appendChild(
+      deleteCell
+    );
+
+
+    body.appendChild(tr);
+  }
+}
+
+
+/* ============================================================
+   Daily date change
+   ============================================================ */
+
+document
+  .getElementById("d-date")
+  .addEventListener(
+    "change",
+    async (e) => {
+
+      selectedDate =
+        e.target.value ||
+        todayStr();
+
+      await refreshDailyLog();
+    }
+  );
+
+
+/* ============================================================
+   Init
+   ============================================================ */
+
+(async function init() {
+
+  document.getElementById(
+    "d-date"
+  ).value = selectedDate;
+
+
+  document.getElementById(
+    "l-date"
+  ).value = selectedDate;
+
+
+  try {
+
+    await refreshFoods();
+
+    await refreshDailyLog();
+
+  } catch (err) {
+
+    console.error(
+      "Initialization failed:",
+      err
+    );
+
+  }
+
+})();
+
+</script>
+
+</body>
+</html>
