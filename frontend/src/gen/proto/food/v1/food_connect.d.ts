@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { CreateFoodRequest, CreateFoodResponse, DeleteFoodRequest, DeleteFoodResponse, GetFoodRequest, GetFoodResponse, ListFoodsRequest, ListFoodsResponse } from "./food_pb.js";
+import { CreateFoodRequest, CreateFoodResponse, DeleteFoodRequest, DeleteFoodResponse, GetFoodRequest, GetFoodResponse, ListFoodsRequest, ListFoodsResponse, SetFoodFrequentRequest, SetFoodFrequentResponse } from "./food_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -46,6 +46,15 @@ export declare const FoodService: {
       readonly name: "GetFood",
       readonly I: typeof GetFoodRequest,
       readonly O: typeof GetFoodResponse,
+      readonly kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc food.v1.FoodService.SetFoodFrequent
+     */
+    readonly setFoodFrequent: {
+      readonly name: "SetFoodFrequent",
+      readonly I: typeof SetFoodFrequentRequest,
+      readonly O: typeof SetFoodFrequentResponse,
       readonly kind: MethodKind.Unary,
     },
   }

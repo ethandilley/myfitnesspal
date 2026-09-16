@@ -11,6 +11,7 @@ message Food {
   double protein_g = 4;
   double carbs_g = 5;
   double fat_g = 6;
+  bool is_frequent = 7;
 }
 
 message CreateFoodRequest {
@@ -19,6 +20,7 @@ message CreateFoodRequest {
   double protein_g = 3;
   double carbs_g = 4;
   double fat_g = 5;
+  bool is_frequent = 6; // optional at creation time, defaults to false
 }
 message CreateFoodResponse {
   Food food = 1;
@@ -29,9 +31,20 @@ message DeleteFoodRequest {
 }
 message DeleteFoodResponse {}
 
-message ListFoodsRequest {}
+message ListFoodsRequest {
+  // unset = all foods, true = frequent only, false = rare only
+  optional bool is_frequent = 1;
+}
 message ListFoodsResponse {
   repeated Food foods = 1;
+}
+
+message SetFoodFrequentRequest {
+  int32 id = 1;
+  bool is_frequent = 2;
+}
+message SetFoodFrequentResponse {
+  Food food = 1;
 }
 
 message GetFoodRequest {
@@ -46,4 +59,5 @@ service FoodService {
   rpc DeleteFood(DeleteFoodRequest) returns (DeleteFoodResponse);
   rpc ListFoods(ListFoodsRequest) returns (ListFoodsResponse);
   rpc GetFood(GetFoodRequest) returns (GetFoodResponse);
+  rpc SetFoodFrequent(SetFoodFrequentRequest) returns (SetFoodFrequentResponse);
 }

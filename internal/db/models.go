@@ -9,13 +9,14 @@ import (
 )
 
 type Food struct {
-	ID        int32
-	Name      string
-	Calories  pgtype.Numeric
-	ProteinG  pgtype.Numeric
-	CarbsG    pgtype.Numeric
-	FatG      pgtype.Numeric
-	CreatedAt pgtype.Timestamptz
+	ID         int32
+	Name       string
+	Calories   pgtype.Numeric
+	ProteinG   pgtype.Numeric
+	CarbsG     pgtype.Numeric
+	FatG       pgtype.Numeric
+	CreatedAt  pgtype.Timestamptz
+	IsFrequent bool
 }
 
 type LogEntry struct {

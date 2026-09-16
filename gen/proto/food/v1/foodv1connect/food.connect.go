@@ -41,6 +41,9 @@ const (
 	FoodServiceListFoodsProcedure = "/food.v1.FoodService/ListFoods"
 	// FoodServiceGetFoodProcedure is the fully-qualified name of the FoodService's GetFood RPC.
 	FoodServiceGetFoodProcedure = "/food.v1.FoodService/GetFood"
+	// FoodServiceSetFoodFrequentProcedure is the fully-qualified name of the FoodService's
+	// SetFoodFrequent RPC.
+	FoodServiceSetFoodFrequentProcedure = "/food.v1.FoodService/SetFoodFrequent"
 )
 
 // FoodServiceClient is a client for the food.v1.FoodService service.
@@ -49,6 +52,7 @@ type FoodServiceClient interface {
 	DeleteFood(context.Context, *connect.Request[v1.DeleteFoodRequest]) (*connect.Response[v1.DeleteFoodResponse], error)
 	ListFoods(context.Context, *connect.Request[v1.ListFoodsRequest]) (*connect.Response[v1.ListFoodsResponse], error)
 	GetFood(context.Context, *connect.Request[v1.GetFoodRequest]) (*connect.Response[v1.GetFoodResponse], error)
+	SetFoodFrequent(context.Context, *connect.Request[v1.SetFoodFrequentRequest]) (*connect.Response[v1.SetFoodFrequentResponse], error)
 }
 
 // NewFoodServiceClient constructs a client for the food.v1.FoodService service. By default, it uses
@@ -86,15 +90,22 @@ func NewFoodServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(foodServiceMethods.ByName("GetFood")),
 			connect.WithClientOptions(opts...),
 		),
+		setFoodFrequent: connect.NewClient[v1.SetFoodFrequentRequest, v1.SetFoodFrequentResponse](
+			httpClient,
+			baseURL+FoodServiceSetFoodFrequentProcedure,
+			connect.WithSchema(foodServiceMethods.ByName("SetFoodFrequent")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // foodServiceClient implements FoodServiceClient.
 type foodServiceClient struct {
-	createFood *connect.Client[v1.CreateFoodRequest, v1.CreateFoodResponse]
-	deleteFood *connect.Client[v1.DeleteFoodRequest, v1.DeleteFoodResponse]
-	listFoods  *connect.Client[v1.ListFoodsRequest, v1.ListFoodsResponse]
-	getFood    *connect.Client[v1.GetFoodRequest, v1.GetFoodResponse]
+	createFood      *connect.Client[v1.CreateFoodRequest, v1.CreateFoodResponse]
+	deleteFood      *connect.Client[v1.DeleteFoodRequest, v1.DeleteFoodResponse]
+	listFoods       *connect.Client[v1.ListFoodsRequest, v1.ListFoodsResponse]
+	getFood         *connect.Client[v1.GetFoodRequest, v1.GetFoodResponse]
+	setFoodFrequent *connect.Client[v1.SetFoodFrequentRequest, v1.SetFoodFrequentResponse]
 }
 
 // CreateFood calls food.v1.FoodService.CreateFood.
@@ -117,12 +128,18 @@ func (c *foodServiceClient) GetFood(ctx context.Context, req *connect.Request[v1
 	return c.getFood.CallUnary(ctx, req)
 }
 
+// SetFoodFrequent calls food.v1.FoodService.SetFoodFrequent.
+func (c *foodServiceClient) SetFoodFrequent(ctx context.Context, req *connect.Request[v1.SetFoodFrequentRequest]) (*connect.Response[v1.SetFoodFrequentResponse], error) {
+	return c.setFoodFrequent.CallUnary(ctx, req)
+}
+
 // FoodServiceHandler is an implementation of the food.v1.FoodService service.
 type FoodServiceHandler interface {
 	CreateFood(context.Context, *connect.Request[v1.CreateFoodRequest]) (*connect.Response[v1.CreateFoodResponse], error)
 	DeleteFood(context.Context, *connect.Request[v1.DeleteFoodRequest]) (*connect.Response[v1.DeleteFoodResponse], error)
 	ListFoods(context.Context, *connect.Request[v1.ListFoodsRequest]) (*connect.Response[v1.ListFoodsResponse], error)
 	GetFood(context.Context, *connect.Request[v1.GetFoodRequest]) (*connect.Response[v1.GetFoodResponse], error)
+	SetFoodFrequent(context.Context, *connect.Request[v1.SetFoodFrequentRequest]) (*connect.Response[v1.SetFoodFrequentResponse], error)
 }
 
 // NewFoodServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -156,6 +173,12 @@ func NewFoodServiceHandler(svc FoodServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(foodServiceMethods.ByName("GetFood")),
 		connect.WithHandlerOptions(opts...),
 	)
+	foodServiceSetFoodFrequentHandler := connect.NewUnaryHandler(
+		FoodServiceSetFoodFrequentProcedure,
+		svc.SetFoodFrequent,
+		connect.WithSchema(foodServiceMethods.ByName("SetFoodFrequent")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/food.v1.FoodService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FoodServiceCreateFoodProcedure:
@@ -166,6 +189,8 @@ func NewFoodServiceHandler(svc FoodServiceHandler, opts ...connect.HandlerOption
 			foodServiceListFoodsHandler.ServeHTTP(w, r)
 		case FoodServiceGetFoodProcedure:
 			foodServiceGetFoodHandler.ServeHTTP(w, r)
+		case FoodServiceSetFoodFrequentProcedure:
+			foodServiceSetFoodFrequentHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -189,4 +214,8 @@ func (UnimplementedFoodServiceHandler) ListFoods(context.Context, *connect.Reque
 
 func (UnimplementedFoodServiceHandler) GetFood(context.Context, *connect.Request[v1.GetFoodRequest]) (*connect.Response[v1.GetFoodResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("food.v1.FoodService.GetFood is not implemented"))
+}
+
+func (UnimplementedFoodServiceHandler) SetFoodFrequent(context.Context, *connect.Request[v1.SetFoodFrequentRequest]) (*connect.Response[v1.SetFoodFrequentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("food.v1.FoodService.SetFoodFrequent is not implemented"))
 }

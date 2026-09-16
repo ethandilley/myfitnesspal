@@ -29,6 +29,7 @@ type Food struct {
 	ProteinG      float64                `protobuf:"fixed64,4,opt,name=protein_g,json=proteinG,proto3" json:"protein_g,omitempty"`
 	CarbsG        float64                `protobuf:"fixed64,5,opt,name=carbs_g,json=carbsG,proto3" json:"carbs_g,omitempty"`
 	FatG          float64                `protobuf:"fixed64,6,opt,name=fat_g,json=fatG,proto3" json:"fat_g,omitempty"`
+	IsFrequent    bool                   `protobuf:"varint,7,opt,name=is_frequent,json=isFrequent,proto3" json:"is_frequent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -105,6 +106,13 @@ func (x *Food) GetFatG() float64 {
 	return 0
 }
 
+func (x *Food) GetIsFrequent() bool {
+	if x != nil {
+		return x.IsFrequent
+	}
+	return false
+}
+
 type CreateFoodRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -112,6 +120,7 @@ type CreateFoodRequest struct {
 	ProteinG      float64                `protobuf:"fixed64,3,opt,name=protein_g,json=proteinG,proto3" json:"protein_g,omitempty"`
 	CarbsG        float64                `protobuf:"fixed64,4,opt,name=carbs_g,json=carbsG,proto3" json:"carbs_g,omitempty"`
 	FatG          float64                `protobuf:"fixed64,5,opt,name=fat_g,json=fatG,proto3" json:"fat_g,omitempty"`
+	IsFrequent    bool                   `protobuf:"varint,6,opt,name=is_frequent,json=isFrequent,proto3" json:"is_frequent,omitempty"` // optional at creation time, defaults to false
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -179,6 +188,13 @@ func (x *CreateFoodRequest) GetFatG() float64 {
 		return x.FatG
 	}
 	return 0
+}
+
+func (x *CreateFoodRequest) GetIsFrequent() bool {
+	if x != nil {
+		return x.IsFrequent
+	}
+	return false
 }
 
 type CreateFoodResponse struct {
@@ -306,7 +322,9 @@ func (*DeleteFoodResponse) Descriptor() ([]byte, []int) {
 }
 
 type ListFoodsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// unset = all foods, true = frequent only, false = rare only
+	IsFrequent    *bool `protobuf:"varint,1,opt,name=is_frequent,json=isFrequent,proto3,oneof" json:"is_frequent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -339,6 +357,13 @@ func (x *ListFoodsRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListFoodsRequest.ProtoReflect.Descriptor instead.
 func (*ListFoodsRequest) Descriptor() ([]byte, []int) {
 	return file_proto_food_v1_food_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ListFoodsRequest) GetIsFrequent() bool {
+	if x != nil && x.IsFrequent != nil {
+		return *x.IsFrequent
+	}
+	return false
 }
 
 type ListFoodsResponse struct {
@@ -385,6 +410,102 @@ func (x *ListFoodsResponse) GetFoods() []*Food {
 	return nil
 }
 
+type SetFoodFrequentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	IsFrequent    bool                   `protobuf:"varint,2,opt,name=is_frequent,json=isFrequent,proto3" json:"is_frequent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetFoodFrequentRequest) Reset() {
+	*x = SetFoodFrequentRequest{}
+	mi := &file_proto_food_v1_food_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetFoodFrequentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetFoodFrequentRequest) ProtoMessage() {}
+
+func (x *SetFoodFrequentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_food_v1_food_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetFoodFrequentRequest.ProtoReflect.Descriptor instead.
+func (*SetFoodFrequentRequest) Descriptor() ([]byte, []int) {
+	return file_proto_food_v1_food_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SetFoodFrequentRequest) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SetFoodFrequentRequest) GetIsFrequent() bool {
+	if x != nil {
+		return x.IsFrequent
+	}
+	return false
+}
+
+type SetFoodFrequentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Food          *Food                  `protobuf:"bytes,1,opt,name=food,proto3" json:"food,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetFoodFrequentResponse) Reset() {
+	*x = SetFoodFrequentResponse{}
+	mi := &file_proto_food_v1_food_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetFoodFrequentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetFoodFrequentResponse) ProtoMessage() {}
+
+func (x *SetFoodFrequentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_food_v1_food_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetFoodFrequentResponse.ProtoReflect.Descriptor instead.
+func (*SetFoodFrequentResponse) Descriptor() ([]byte, []int) {
+	return file_proto_food_v1_food_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SetFoodFrequentResponse) GetFood() *Food {
+	if x != nil {
+		return x.Food
+	}
+	return nil
+}
+
 type GetFoodRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -394,7 +515,7 @@ type GetFoodRequest struct {
 
 func (x *GetFoodRequest) Reset() {
 	*x = GetFoodRequest{}
-	mi := &file_proto_food_v1_food_proto_msgTypes[7]
+	mi := &file_proto_food_v1_food_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -406,7 +527,7 @@ func (x *GetFoodRequest) String() string {
 func (*GetFoodRequest) ProtoMessage() {}
 
 func (x *GetFoodRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_food_v1_food_proto_msgTypes[7]
+	mi := &file_proto_food_v1_food_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -419,7 +540,7 @@ func (x *GetFoodRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFoodRequest.ProtoReflect.Descriptor instead.
 func (*GetFoodRequest) Descriptor() ([]byte, []int) {
-	return file_proto_food_v1_food_proto_rawDescGZIP(), []int{7}
+	return file_proto_food_v1_food_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetFoodRequest) GetId() int32 {
@@ -438,7 +559,7 @@ type GetFoodResponse struct {
 
 func (x *GetFoodResponse) Reset() {
 	*x = GetFoodResponse{}
-	mi := &file_proto_food_v1_food_proto_msgTypes[8]
+	mi := &file_proto_food_v1_food_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -450,7 +571,7 @@ func (x *GetFoodResponse) String() string {
 func (*GetFoodResponse) ProtoMessage() {}
 
 func (x *GetFoodResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_food_v1_food_proto_msgTypes[8]
+	mi := &file_proto_food_v1_food_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -463,7 +584,7 @@ func (x *GetFoodResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFoodResponse.ProtoReflect.Descriptor instead.
 func (*GetFoodResponse) Descriptor() ([]byte, []int) {
-	return file_proto_food_v1_food_proto_rawDescGZIP(), []int{8}
+	return file_proto_food_v1_food_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetFoodResponse) GetFood() *Food {
@@ -477,39 +598,53 @@ var File_proto_food_v1_food_proto protoreflect.FileDescriptor
 
 const file_proto_food_v1_food_proto_rawDesc = "" +
 	"\n" +
-	"\x18proto/food/v1/food.proto\x12\afood.v1\"\x91\x01\n" +
+	"\x18proto/food/v1/food.proto\x12\afood.v1\"\xb2\x01\n" +
 	"\x04Food\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
 	"\bcalories\x18\x03 \x01(\x01R\bcalories\x12\x1b\n" +
 	"\tprotein_g\x18\x04 \x01(\x01R\bproteinG\x12\x17\n" +
 	"\acarbs_g\x18\x05 \x01(\x01R\x06carbsG\x12\x13\n" +
-	"\x05fat_g\x18\x06 \x01(\x01R\x04fatG\"\x8e\x01\n" +
+	"\x05fat_g\x18\x06 \x01(\x01R\x04fatG\x12\x1f\n" +
+	"\vis_frequent\x18\a \x01(\bR\n" +
+	"isFrequent\"\xaf\x01\n" +
 	"\x11CreateFoodRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1a\n" +
 	"\bcalories\x18\x02 \x01(\x01R\bcalories\x12\x1b\n" +
 	"\tprotein_g\x18\x03 \x01(\x01R\bproteinG\x12\x17\n" +
 	"\acarbs_g\x18\x04 \x01(\x01R\x06carbsG\x12\x13\n" +
-	"\x05fat_g\x18\x05 \x01(\x01R\x04fatG\"7\n" +
+	"\x05fat_g\x18\x05 \x01(\x01R\x04fatG\x12\x1f\n" +
+	"\vis_frequent\x18\x06 \x01(\bR\n" +
+	"isFrequent\"7\n" +
 	"\x12CreateFoodResponse\x12!\n" +
 	"\x04food\x18\x01 \x01(\v2\r.food.v1.FoodR\x04food\"#\n" +
 	"\x11DeleteFoodRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\"\x14\n" +
-	"\x12DeleteFoodResponse\"\x12\n" +
-	"\x10ListFoodsRequest\"8\n" +
+	"\x12DeleteFoodResponse\"H\n" +
+	"\x10ListFoodsRequest\x12$\n" +
+	"\vis_frequent\x18\x01 \x01(\bH\x00R\n" +
+	"isFrequent\x88\x01\x01B\x0e\n" +
+	"\f_is_frequent\"8\n" +
 	"\x11ListFoodsResponse\x12#\n" +
-	"\x05foods\x18\x01 \x03(\v2\r.food.v1.FoodR\x05foods\" \n" +
+	"\x05foods\x18\x01 \x03(\v2\r.food.v1.FoodR\x05foods\"I\n" +
+	"\x16SetFoodFrequentRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x1f\n" +
+	"\vis_frequent\x18\x02 \x01(\bR\n" +
+	"isFrequent\"<\n" +
+	"\x17SetFoodFrequentResponse\x12!\n" +
+	"\x04food\x18\x01 \x01(\v2\r.food.v1.FoodR\x04food\" \n" +
 	"\x0eGetFoodRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\"4\n" +
 	"\x0fGetFoodResponse\x12!\n" +
-	"\x04food\x18\x01 \x01(\v2\r.food.v1.FoodR\x04food2\x9d\x02\n" +
+	"\x04food\x18\x01 \x01(\v2\r.food.v1.FoodR\x04food2\xf3\x02\n" +
 	"\vFoodService\x12E\n" +
 	"\n" +
 	"CreateFood\x12\x1a.food.v1.CreateFoodRequest\x1a\x1b.food.v1.CreateFoodResponse\x12E\n" +
 	"\n" +
 	"DeleteFood\x12\x1a.food.v1.DeleteFoodRequest\x1a\x1b.food.v1.DeleteFoodResponse\x12B\n" +
 	"\tListFoods\x12\x19.food.v1.ListFoodsRequest\x1a\x1a.food.v1.ListFoodsResponse\x12<\n" +
-	"\aGetFood\x12\x17.food.v1.GetFoodRequest\x1a\x18.food.v1.GetFoodResponseB>Z<github.com/ethandilley/myfitnesspal/gen/proto/food/v1;foodv1b\x06proto3"
+	"\aGetFood\x12\x17.food.v1.GetFoodRequest\x1a\x18.food.v1.GetFoodResponse\x12T\n" +
+	"\x0fSetFoodFrequent\x12\x1f.food.v1.SetFoodFrequentRequest\x1a .food.v1.SetFoodFrequentResponseB>Z<github.com/ethandilley/myfitnesspal/gen/proto/food/v1;foodv1b\x06proto3"
 
 var (
 	file_proto_food_v1_food_proto_rawDescOnce sync.Once
@@ -523,35 +658,40 @@ func file_proto_food_v1_food_proto_rawDescGZIP() []byte {
 	return file_proto_food_v1_food_proto_rawDescData
 }
 
-var file_proto_food_v1_food_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_proto_food_v1_food_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_food_v1_food_proto_goTypes = []any{
-	(*Food)(nil),               // 0: food.v1.Food
-	(*CreateFoodRequest)(nil),  // 1: food.v1.CreateFoodRequest
-	(*CreateFoodResponse)(nil), // 2: food.v1.CreateFoodResponse
-	(*DeleteFoodRequest)(nil),  // 3: food.v1.DeleteFoodRequest
-	(*DeleteFoodResponse)(nil), // 4: food.v1.DeleteFoodResponse
-	(*ListFoodsRequest)(nil),   // 5: food.v1.ListFoodsRequest
-	(*ListFoodsResponse)(nil),  // 6: food.v1.ListFoodsResponse
-	(*GetFoodRequest)(nil),     // 7: food.v1.GetFoodRequest
-	(*GetFoodResponse)(nil),    // 8: food.v1.GetFoodResponse
+	(*Food)(nil),                    // 0: food.v1.Food
+	(*CreateFoodRequest)(nil),       // 1: food.v1.CreateFoodRequest
+	(*CreateFoodResponse)(nil),      // 2: food.v1.CreateFoodResponse
+	(*DeleteFoodRequest)(nil),       // 3: food.v1.DeleteFoodRequest
+	(*DeleteFoodResponse)(nil),      // 4: food.v1.DeleteFoodResponse
+	(*ListFoodsRequest)(nil),        // 5: food.v1.ListFoodsRequest
+	(*ListFoodsResponse)(nil),       // 6: food.v1.ListFoodsResponse
+	(*SetFoodFrequentRequest)(nil),  // 7: food.v1.SetFoodFrequentRequest
+	(*SetFoodFrequentResponse)(nil), // 8: food.v1.SetFoodFrequentResponse
+	(*GetFoodRequest)(nil),          // 9: food.v1.GetFoodRequest
+	(*GetFoodResponse)(nil),         // 10: food.v1.GetFoodResponse
 }
 var file_proto_food_v1_food_proto_depIdxs = []int32{
-	0, // 0: food.v1.CreateFoodResponse.food:type_name -> food.v1.Food
-	0, // 1: food.v1.ListFoodsResponse.foods:type_name -> food.v1.Food
-	0, // 2: food.v1.GetFoodResponse.food:type_name -> food.v1.Food
-	1, // 3: food.v1.FoodService.CreateFood:input_type -> food.v1.CreateFoodRequest
-	3, // 4: food.v1.FoodService.DeleteFood:input_type -> food.v1.DeleteFoodRequest
-	5, // 5: food.v1.FoodService.ListFoods:input_type -> food.v1.ListFoodsRequest
-	7, // 6: food.v1.FoodService.GetFood:input_type -> food.v1.GetFoodRequest
-	2, // 7: food.v1.FoodService.CreateFood:output_type -> food.v1.CreateFoodResponse
-	4, // 8: food.v1.FoodService.DeleteFood:output_type -> food.v1.DeleteFoodResponse
-	6, // 9: food.v1.FoodService.ListFoods:output_type -> food.v1.ListFoodsResponse
-	8, // 10: food.v1.FoodService.GetFood:output_type -> food.v1.GetFoodResponse
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	0,  // 0: food.v1.CreateFoodResponse.food:type_name -> food.v1.Food
+	0,  // 1: food.v1.ListFoodsResponse.foods:type_name -> food.v1.Food
+	0,  // 2: food.v1.SetFoodFrequentResponse.food:type_name -> food.v1.Food
+	0,  // 3: food.v1.GetFoodResponse.food:type_name -> food.v1.Food
+	1,  // 4: food.v1.FoodService.CreateFood:input_type -> food.v1.CreateFoodRequest
+	3,  // 5: food.v1.FoodService.DeleteFood:input_type -> food.v1.DeleteFoodRequest
+	5,  // 6: food.v1.FoodService.ListFoods:input_type -> food.v1.ListFoodsRequest
+	9,  // 7: food.v1.FoodService.GetFood:input_type -> food.v1.GetFoodRequest
+	7,  // 8: food.v1.FoodService.SetFoodFrequent:input_type -> food.v1.SetFoodFrequentRequest
+	2,  // 9: food.v1.FoodService.CreateFood:output_type -> food.v1.CreateFoodResponse
+	4,  // 10: food.v1.FoodService.DeleteFood:output_type -> food.v1.DeleteFoodResponse
+	6,  // 11: food.v1.FoodService.ListFoods:output_type -> food.v1.ListFoodsResponse
+	10, // 12: food.v1.FoodService.GetFood:output_type -> food.v1.GetFoodResponse
+	8,  // 13: food.v1.FoodService.SetFoodFrequent:output_type -> food.v1.SetFoodFrequentResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_food_v1_food_proto_init() }
@@ -559,13 +699,14 @@ func file_proto_food_v1_food_proto_init() {
 	if File_proto_food_v1_food_proto != nil {
 		return
 	}
+	file_proto_food_v1_food_proto_msgTypes[5].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_food_v1_food_proto_rawDesc), len(file_proto_food_v1_food_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

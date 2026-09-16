@@ -84,9 +84,33 @@
     color: #c0392b;
   }
 
+  /* Food filter */
+  #food-filter {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  #food-filter button {
+    flex: 1;
+    padding: 0.4rem 0.5rem;
+    cursor: pointer;
+    border: 1px solid #888;
+    background: #eee;
+    color: #111;
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+
+  #food-filter button.active {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+  }
+
   /* Food list */
   #food-list {
-    margin-top: 1.5rem;
+    margin-top: 0.75rem;
   }
 
   .food-item {
@@ -105,6 +129,20 @@
 
   .food-name {
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .frequent-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    background: #dff0d8;
+    color: #1a7f37;
   }
 
   .food-macros {
@@ -116,17 +154,91 @@
   /* Delete button */
   .delete-btn {
     flex-shrink: 0;
-    padding: 0.35rem 0.7rem;
+    width: 1.6rem;
+    height: 1.6rem;
+    padding: 0;
     cursor: pointer;
     border: 1px solid #c0392b;
     color: #c0392b;
     background: transparent;
-    border-radius: 5px;
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .delete-btn:hover {
     background: #c0392b;
     color: white;
+  }
+
+  .food-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .toggle-frequent-btn {
+    padding: 0.35rem 0.7rem;
+    cursor: pointer;
+    border: 1px solid #888;
+    color: #333;
+    background: transparent;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  .toggle-frequent-btn:hover {
+    background: #eee;
+  }
+
+  /* Searchable food combobox */
+  .combobox {
+    position: relative;
+  }
+
+  .combobox-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.25rem;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #161616;
+    border: 1px solid #333;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+  }
+
+  .combobox-list.open {
+    display: block;
+  }
+
+  .combobox-option {
+    padding: 0.5rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #e8e8e8;
+  }
+
+  .combobox-option:hover,
+  .combobox-option.highlighted {
+    background: #333;
+  }
+
+  .combobox-empty {
+    padding: 0.5rem 0.6rem;
+    color: #999;
+    font-style: italic;
+    font-size: 0.9rem;
   }
 
   table {
@@ -162,6 +274,58 @@
     color: #111;
     border-radius: 6px;
     font-weight: bold;
+  }
+
+  .remaining-totals {
+    margin-top: 0.5rem;
+  }
+
+  .remaining-totals div {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .remaining-totals div.under-target {
+    background: #dff0d8;
+    color: #1a7f37;
+  }
+
+  .remaining-totals div.over-target {
+    background: #f8d7da;
+    color: #c0392b;
+  }
+
+  .targets-toggle-btn {
+    margin-top: 0.75rem;
+    padding: 0.35rem 0.7rem;
+    cursor: pointer;
+    border: 1px solid #888;
+    color: #333;
+    background: transparent;
+    border-radius: 5px;
+    font-size: 0.8rem;
+  }
+
+  .targets-toggle-btn:hover {
+    background: #eee;
+  }
+
+  .targets-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+    padding: 0.6rem;
+    background: #f2f2f2;
+    border-radius: 6px;
+  }
+
+  .targets-panel label {
+    flex: 1;
+    min-width: 80px;
+    margin-top: 0;
+    font-size: 0.8rem;
+    color: #333;
   }
 
   .empty {
@@ -254,11 +418,25 @@
 
 <section id="log">
 
+  <div id="food-filter">
+    <button data-filter="all" class="active" type="button">All</button>
+    <button data-filter="frequent" type="button">Frequent</button>
+    <button data-filter="infrequent" type="button">Infrequent</button>
+  </div>
+
   <form id="log-form">
 
     <label>
       Food
-      <select id="l-food"></select>
+      <div class="combobox">
+        <input
+          type="text"
+          id="l-food-input"
+          placeholder="Click or type to search foods…"
+          autocomplete="off"
+        >
+        <div id="l-food-dropdown" class="combobox-list"></div>
+      </div>
     </label>
 
     <label>
@@ -317,6 +495,62 @@
       Fat<br>
       <span id="t-fat">0</span>g
     </div>
+
+  </div>
+
+  <div class="totals remaining-totals" id="remaining-totals" style="display:none">
+
+    <div id="r-cal-box">
+      Cal left<br>
+      <span id="r-cal">0</span>
+    </div>
+
+    <div id="r-protein-box">
+      Protein left<br>
+      <span id="r-protein">0</span>g
+    </div>
+
+    <div id="r-carbs-box">
+      Carbs left<br>
+      <span id="r-carbs">0</span>g
+    </div>
+
+    <div id="r-fat-box">
+      Fat left<br>
+      <span id="r-fat">0</span>g
+    </div>
+
+  </div>
+
+  <button
+    type="button"
+    id="targets-toggle-btn"
+    class="targets-toggle-btn"
+  >
+    Set targets
+  </button>
+
+  <div id="targets-panel" class="targets-panel" style="display:none">
+
+    <label>
+      Cal
+      <input type="number" id="tgt-cal" value="0" min="0" step="any">
+    </label>
+
+    <label>
+      Protein (g)
+      <input type="number" id="tgt-protein" value="0" min="0" step="any">
+    </label>
+
+    <label>
+      Carbs (g)
+      <input type="number" id="tgt-carbs" value="0" min="0" step="any">
+    </label>
+
+    <label>
+      Fat (g)
+      <input type="number" id="tgt-fat" value="0" min="0" step="any">
+    </label>
 
   </div>
 
@@ -411,6 +645,13 @@ const Food = {
       "DeleteFood",
       { id }
     ),
+
+  setFrequent: (id, isFrequent) =>
+    rpc(
+      "food.v1.FoodService",
+      "SetFoodFrequent",
+      { id, isFrequent }
+    ),
 };
 
 
@@ -444,11 +685,193 @@ const Log = {
    ============================================================ */
 
 let foods = [];
+let foodFilter = "all"; // "all" | "frequent" | "infrequent"
 
 const todayStr = () =>
   new Date().toISOString().slice(0, 10);
 
 let selectedDate = todayStr();
+
+let lastTotals = {};
+
+const TARGETS_KEY = "myfitnesspal:targets";
+
+let targets = { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 };
+
+function loadTargets() {
+
+  try {
+
+    const raw = localStorage.getItem(TARGETS_KEY);
+
+    if (raw) {
+      targets = { ...targets, ...JSON.parse(raw) };
+    }
+
+  } catch (err) {
+
+    console.error(
+      "Failed to load targets:",
+      err
+    );
+  }
+}
+
+function saveTargets() {
+
+  try {
+
+    localStorage.setItem(
+      TARGETS_KEY,
+      JSON.stringify(targets)
+    );
+
+  } catch (err) {
+
+    console.error(
+      "Failed to save targets:",
+      err
+    );
+  }
+}
+
+function applyRemainingBox(
+  boxId,
+  spanId,
+  target,
+  consumed
+) {
+
+  const box =
+    document.getElementById(boxId);
+
+  const span =
+    document.getElementById(spanId);
+
+  const remaining =
+    target - (consumed || 0);
+
+  span.textContent =
+    Math.round(remaining);
+
+  box.classList.remove(
+    "under-target",
+    "over-target"
+  );
+
+  box.classList.add(
+    remaining < 0
+      ? "over-target"
+      : "under-target"
+  );
+}
+
+function renderRemaining() {
+
+  const panel =
+    document.getElementById(
+      "remaining-totals"
+    );
+
+  const hasTarget =
+    targets.calories > 0 ||
+    targets.proteinG > 0 ||
+    targets.carbsG > 0 ||
+    targets.fatG > 0;
+
+
+  if (!hasTarget) {
+
+    panel.style.display = "none";
+
+    return;
+  }
+
+
+  panel.style.display = "flex";
+
+  applyRemainingBox(
+    "r-cal-box",
+    "r-cal",
+    targets.calories,
+    lastTotals.calories
+  );
+
+  applyRemainingBox(
+    "r-protein-box",
+    "r-protein",
+    targets.proteinG,
+    lastTotals.proteinG
+  );
+
+  applyRemainingBox(
+    "r-carbs-box",
+    "r-carbs",
+    targets.carbsG,
+    lastTotals.carbsG
+  );
+
+  applyRemainingBox(
+    "r-fat-box",
+    "r-fat",
+    targets.fatG,
+    lastTotals.fatG
+  );
+}
+
+
+document
+  .getElementById("targets-toggle-btn")
+  .addEventListener("click", () => {
+
+    const panel =
+      document.getElementById(
+        "targets-panel"
+      );
+
+    const isOpen =
+      panel.style.display !== "none";
+
+    panel.style.display =
+      isOpen ? "none" : "flex";
+
+    document.getElementById(
+      "targets-toggle-btn"
+    ).textContent =
+      isOpen
+        ? "Set targets"
+        : "Hide targets";
+  });
+
+
+function wireTargetInput(inputId, key) {
+
+  const input =
+    document.getElementById(inputId);
+
+  input.value = targets[key];
+
+  input.addEventListener(
+    "change",
+    () => {
+
+      targets[key] =
+        Number(input.value) || 0;
+
+      saveTargets();
+
+      renderRemaining();
+    }
+  );
+}
+
+
+loadTargets();
+
+wireTargetInput("tgt-cal", "calories");
+wireTargetInput("tgt-protein", "proteinG");
+wireTargetInput("tgt-carbs", "carbsG");
+wireTargetInput("tgt-fat", "fatG");
 
 
 /* ============================================================
@@ -485,6 +908,32 @@ document
 
 
 /* ============================================================
+   Food filter (All / Frequent / Infrequent)
+   ============================================================ */
+
+document
+  .querySelectorAll("#food-filter button")
+  .forEach((btn) => {
+
+    btn.addEventListener("click", () => {
+
+      document
+        .querySelectorAll("#food-filter button")
+        .forEach((b) =>
+          b.classList.remove("active")
+        );
+
+      btn.classList.add("active");
+
+      foodFilter = btn.dataset.filter;
+
+      renderFoodDropdown();
+    });
+
+  });
+
+
+/* ============================================================
    Foods
    ============================================================ */
 
@@ -495,39 +944,235 @@ async function refreshFoods() {
   foods = res.foods || [];
 
 
-  /* ---------- Update dropdown ---------- */
+  /* ---------- Update dropdown (respects current filter) ---------- */
 
-  const sel =
-    document.getElementById("l-food");
+  renderFoodDropdown();
 
-  sel.innerHTML = "";
+
+  /* ---------- Render food list (always shows all foods) ---------- */
+
+  renderFoodList();
+}
+
+
+function filteredFoods() {
+
+  return foods.filter((f) => {
+
+    if (foodFilter === "frequent") {
+      return !!f.isFrequent;
+    }
+
+    if (foodFilter === "infrequent") {
+      return !f.isFrequent;
+    }
+
+    return true;
+  });
+}
+
+
+let selectedFoodId = null;
+
+function foodLabel(f, visible) {
+
+  const nameCounts = new Map();
+
+  for (const other of visible) {
+    nameCounts.set(
+      other.name,
+      (nameCounts.get(other.name) || 0) + 1
+    );
+  }
+
+  const base =
+    f.isFrequent
+      ? `★ ${f.name}`
+      : f.name;
+
+  return nameCounts.get(f.name) > 1
+    ? `${base} (#${f.id})`
+    : base;
+}
+
+
+function renderFoodDropdown() {
+
+  const input =
+    document.getElementById("l-food-input");
 
 
   if (foods.length === 0) {
 
-    sel.innerHTML =
-      `<option value="">Add a food first</option>`;
+    input.value = "";
+    input.placeholder = "Add a food first";
+    input.disabled = true;
+    selectedFoodId = null;
 
-    sel.disabled = true;
+    closeCombobox();
 
-  } else {
-
-    sel.disabled = false;
-
-    for (const f of foods) {
-
-      const opt =
-        document.createElement("option");
-
-      opt.value = f.id;
-      opt.textContent = f.name;
-
-      sel.appendChild(opt);
-    }
+    return;
   }
 
 
-  /* ---------- Update food list ---------- */
+  const visible = filteredFoods();
+
+
+  if (visible.length === 0) {
+
+    input.value = "";
+    input.placeholder = `No ${foodFilter} foods`;
+    input.disabled = true;
+    selectedFoodId = null;
+
+    closeCombobox();
+
+    return;
+  }
+
+
+  input.disabled = false;
+  input.placeholder = "Click or type to search foods…";
+
+
+  /* If the currently selected food is no longer visible under
+     this filter, clear the selection. */
+
+  if (
+    selectedFoodId !== null &&
+    !visible.some((f) => f.id === selectedFoodId)
+  ) {
+    input.value = "";
+    selectedFoodId = null;
+  }
+
+
+  renderComboboxOptions(input.value);
+}
+
+
+function renderComboboxOptions(query) {
+
+  const list =
+    document.getElementById("l-food-dropdown");
+
+  list.innerHTML = "";
+
+
+  const visible = filteredFoods();
+
+  const q = (query || "").trim().toLowerCase();
+
+  const matches = visible.filter((f) =>
+    !q || f.name.toLowerCase().includes(q)
+  );
+
+
+  if (matches.length === 0) {
+
+    const empty =
+      document.createElement("div");
+
+    empty.className = "combobox-empty";
+
+    empty.textContent = "No matching foods";
+
+    list.appendChild(empty);
+
+    return;
+  }
+
+
+  for (const f of matches) {
+
+    const label = foodLabel(f, visible);
+
+    const opt =
+      document.createElement("div");
+
+    opt.className = "combobox-option";
+
+    opt.textContent = label;
+
+
+    /* mousedown (not click) so this fires before the input's
+       blur event closes the dropdown */
+
+    opt.addEventListener(
+      "mousedown",
+      (e) => {
+
+        e.preventDefault();
+
+        const input =
+          document.getElementById(
+            "l-food-input"
+          );
+
+        input.value = label;
+
+        selectedFoodId = f.id;
+
+        closeCombobox();
+      }
+    );
+
+    list.appendChild(opt);
+  }
+}
+
+
+function openCombobox() {
+
+  document
+    .getElementById("l-food-dropdown")
+    .classList.add("open");
+}
+
+
+function closeCombobox() {
+
+  document
+    .getElementById("l-food-dropdown")
+    .classList.remove("open");
+}
+
+
+document
+  .getElementById("l-food-input")
+  .addEventListener("focus", () => {
+
+    renderComboboxOptions(
+      document.getElementById(
+        "l-food-input"
+      ).value
+    );
+
+    openCombobox();
+  });
+
+
+document
+  .getElementById("l-food-input")
+  .addEventListener("input", (e) => {
+
+    selectedFoodId = null;
+
+    renderComboboxOptions(e.target.value);
+
+    openCombobox();
+  });
+
+
+document
+  .getElementById("l-food-input")
+  .addEventListener("blur", () => {
+
+    closeCombobox();
+  });
+
+
+function renderFoodList() {
 
   const list =
     document.getElementById("food-list");
@@ -567,6 +1212,17 @@ async function refreshFoods() {
 
     name.textContent = f.name;
 
+    if (f.isFrequent) {
+
+      const badge =
+        document.createElement("span");
+
+      badge.className = "frequent-badge";
+      badge.textContent = "Frequent";
+
+      name.appendChild(badge);
+    }
+
 
     const macros =
       document.createElement("div");
@@ -584,6 +1240,50 @@ async function refreshFoods() {
     info.appendChild(macros);
 
 
+    /* Toggle frequent button */
+
+    const toggleButton =
+      document.createElement("button");
+
+    toggleButton.className =
+      "toggle-frequent-btn";
+
+    toggleButton.type = "button";
+
+    toggleButton.textContent =
+      f.isFrequent
+        ? "Mark infrequent"
+        : "Mark frequent";
+
+
+    toggleButton.addEventListener(
+      "click",
+      async () => {
+
+        toggleButton.disabled = true;
+
+        try {
+
+          await Food.setFrequent(
+            f.id,
+            !f.isFrequent
+          );
+
+          await refreshFoods();
+
+        } catch (err) {
+
+          alert(
+            `Could not update frequency:\n\n${err.message}`
+          );
+
+          toggleButton.disabled = false;
+        }
+
+      }
+    );
+
+
     /* Delete button */
 
     const deleteButton =
@@ -595,7 +1295,15 @@ async function refreshFoods() {
     deleteButton.type = "button";
 
     deleteButton.textContent =
-      "Delete";
+      "×";
+
+    deleteButton.title =
+      `Delete "${f.name}"`;
+
+    deleteButton.setAttribute(
+      "aria-label",
+      `Delete ${f.name}`
+    );
 
 
     deleteButton.addEventListener(
@@ -635,8 +1343,17 @@ async function refreshFoods() {
     );
 
 
+    const actions =
+      document.createElement("div");
+
+    actions.className = "food-actions";
+
+    actions.appendChild(toggleButton);
+    actions.appendChild(deleteButton);
+
+
     item.appendChild(info);
-    item.appendChild(deleteButton);
+    item.appendChild(actions);
 
     list.appendChild(item);
   }
@@ -766,18 +1483,19 @@ document
       msg.className = "msg";
 
 
-      const foodId =
-        Number(
-          document.getElementById(
-            "l-food"
-          ).value
+      const foodInput =
+        document.getElementById(
+          "l-food-input"
         );
+
+      const foodId = selectedFoodId;
 
 
       if (!foodId) {
 
-        msg.textContent =
-          "Add a food first";
+        msg.textContent = foodInput.value
+          ? "No matching food — pick one from the list"
+          : "Add a food first";
 
         msg.classList.add("err");
 
@@ -890,6 +1608,11 @@ async function refreshDailyLog() {
     Math.round(
       totals.fatG || 0
     );
+
+
+  lastTotals = totals;
+
+  renderRemaining();
 
 
   /* ---------- Table ---------- */
@@ -1055,7 +1778,20 @@ async function refreshDailyLog() {
     deleteButton.type = "button";
 
     deleteButton.textContent =
-      "Delete";
+      "×";
+
+    const foodNameForLabel =
+      f
+        ? f.name
+        : `food #${entry.foodId}`;
+
+    deleteButton.title =
+      `Delete this ${foodNameForLabel} log entry`;
+
+    deleteButton.setAttribute(
+      "aria-label",
+      `Delete ${foodNameForLabel} log entry`
+    );
 
 
     deleteButton.addEventListener(
@@ -1063,9 +1799,7 @@ async function refreshDailyLog() {
       async () => {
 
         const foodName =
-          f
-            ? f.name
-            : `food #${entry.foodId}`;
+          foodNameForLabel;
 
 
         const confirmed =
