@@ -1,0 +1,246 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: myfitnesspal
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-credentials
+  namespace: myfitnesspal
+type: Opaque
+stringData:
+  POSTGRES_USER: user
+  POSTGRES_PASSWORD: password
+  POSTGRES_DB: myfitnesspal
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: myfitnesspal
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: myfitnesspal
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: postgres-credentials
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "user", "-d", "myfitnesspal"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "user", "-d", "myfitnesspal"]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: pgdata
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: myfitnesspal
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myfitnesspal-migrate
+  namespace: myfitnesspal
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:18
+          command:
+            - sh
+            - -c
+            - until pg_isready -h postgres -U user -d myfitnesspal; do echo waiting for postgres; sleep 2; done
+      containers:
+        - name: migrate
+          image: 192.168.1.201:30500/myfitnesspal-migrate:latest
+          imagePullPolicy: Always
+          env:
+            - name: DB_URL
+              value: postgres://user:password@postgres:5432/myfitnesspal?sslmode=disable
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myfitnesspal-server
+  namespace: myfitnesspal
+  labels:
+    app: myfitnesspal-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myfitnesspal-server
+  template:
+    metadata:
+      labels:
+        app: myfitnesspal-server
+    spec:
+      containers:
+        - name: server
+          image: 192.168.1.201:30500/myfitnesspal-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 50051
+          env:
+            - name: DB_URL
+              value: postgres://user:password@postgres:5432/myfitnesspal?sslmode=disable
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myfitnesspal-server
+  namespace: myfitnesspal
+spec:
+  selector:
+    app: myfitnesspal-server
+  ports:
+    - port: 50051
+      targetPort: 50051
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myfitnesspal-frontend
+  namespace: myfitnesspal
+  labels:
+    app: myfitnesspal-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myfitnesspal-frontend
+  template:
+    metadata:
+      labels:
+        app: myfitnesspal-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: 192.168.1.201:30500/myfitnesspal-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myfitnesspal-frontend
+  namespace: myfitnesspal
+spec:
+  selector:
+    app: myfitnesspal-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myfitnesspal-frontend
+  namespace: myfitnesspal
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: my.dilleystone.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: myfitnesspal-frontend
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myfitnesspal-api
+  namespace: myfitnesspal
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: myfitnesspal-api.dilleystone.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: myfitnesspal-server
+                port:
+                  number: 50051
+

@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	foodv1 "github.com/ethandilley/myfitnesspal/gen/proto/food/v1"
 	"github.com/ethandilley/myfitnesspal/internal/client"
@@ -23,6 +24,7 @@ var (
 	addProtein  float64
 	addCarbs    float64
 	addFat      float64
+	addFrequent bool
 )
 
 var foodAddCmd = &cobra.Command{
@@ -36,11 +38,12 @@ var foodAddCmd = &cobra.Command{
 		defer close()
 
 		resp, err := c.CreateFood(context.Background(), &foodv1.CreateFoodRequest{
-			Name:     addName,
-			Calories: addCalories,
-			ProteinG: addProtein,
-			CarbsG:   addCarbs,
-			FatG:     addFat,
+			Name:       addName,
+			Calories:   addCalories,
+			ProteinG:   addProtein,
+			CarbsG:     addCarbs,
+			FatG:       addFat,
+			IsFrequent: addFrequent,
 		})
 		if err != nil {
 			return err
@@ -53,6 +56,11 @@ var foodAddCmd = &cobra.Command{
 
 // --- ls ---
 
+var (
+	lsFrequent bool
+	lsRare     bool
+)
+
 var foodLsCmd = &cobra.Command{
 	Use:   "ls",
 	Short: "List all foods",
@@ -63,7 +71,20 @@ var foodLsCmd = &cobra.Command{
 		}
 		defer close()
 
-		resp, err := c.ListFoods(context.Background(), &foodv1.ListFoodsRequest{})
+		// nil = no filter (all foods); flags are mutually exclusive so at most
+		// one of these branches runs.
+		var isFrequent *bool
+		if lsFrequent {
+			v := true
+			isFrequent = &v
+		} else if lsRare {
+			v := false
+			isFrequent = &v
+		}
+
+		resp, err := c.ListFoods(context.Background(), &foodv1.ListFoodsRequest{
+			IsFrequent: isFrequent,
+		})
 		if err != nil {
 			return err
 		}
@@ -72,6 +93,41 @@ var foodLsCmd = &cobra.Command{
 			fmt.Printf("#%d  %-20s  cal:%.0f  protein:%.1fg  carbs:%.1fg  fat:%.1fg\n",
 				f.Id, f.Name, f.Calories, f.ProteinG, f.CarbsG, f.FatG)
 		}
+		return nil
+	},
+}
+
+// --- set-frequent ---
+
+var foodSetFrequentCmd = &cobra.Command{
+	Use:   "set-frequent [id] [true|false]",
+	Short: "Mark a food as frequent (or not)",
+	Args:  cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var id int32
+		if _, err := fmt.Sscanf(args[0], "%d", &id); err != nil {
+			return fmt.Errorf("invalid id: %s", args[0])
+		}
+		isFrequent, err := strconv.ParseBool(args[1])
+		if err != nil {
+			return fmt.Errorf("invalid value: %s (use true or false)", args[1])
+		}
+
+		c, close, err := client.NewFoodClient(serverAddr)
+		if err != nil {
+			return err
+		}
+		defer close()
+
+		resp, err := c.SetFoodFrequent(context.Background(), &foodv1.SetFoodFrequentRequest{
+			Id:         id,
+			IsFrequent: isFrequent,
+		})
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("food #%d (%s): frequent=%v\n", resp.Food.Id, resp.Food.Name, resp.Food.IsFrequent)
 		return nil
 	},
 }
@@ -110,7 +166,12 @@ func init() {
 	foodAddCmd.Flags().Float64Var(&addProtein, "protein", 0, "protein (g)")
 	foodAddCmd.Flags().Float64Var(&addCarbs, "carbs", 0, "carbs (g)")
 	foodAddCmd.Flags().Float64Var(&addFat, "fat", 0, "fat (g)")
+	foodAddCmd.Flags().BoolVar(&addFrequent, "frequent", false, "mark as a frequent food")
 	foodAddCmd.MarkFlagRequired("name")
 
-	foodCmd.AddCommand(foodAddCmd, foodLsCmd, foodRmCmd)
+	foodLsCmd.Flags().BoolVar(&lsFrequent, "frequent", false, "only show frequent foods")
+	foodLsCmd.Flags().BoolVar(&lsRare, "rare", false, "only show non-frequent foods")
+	foodLsCmd.MarkFlagsMutuallyExclusive("frequent", "rare")
+
+	foodCmd.AddCommand(foodAddCmd, foodLsCmd, foodSetFrequentCmd, foodRmCmd)
 }

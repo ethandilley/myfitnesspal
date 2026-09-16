@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FoodService_CreateFood_FullMethodName = "/food.v1.FoodService/CreateFood"
-	FoodService_DeleteFood_FullMethodName = "/food.v1.FoodService/DeleteFood"
-	FoodService_ListFoods_FullMethodName  = "/food.v1.FoodService/ListFoods"
-	FoodService_GetFood_FullMethodName    = "/food.v1.FoodService/GetFood"
+	FoodService_CreateFood_FullMethodName      = "/food.v1.FoodService/CreateFood"
+	FoodService_DeleteFood_FullMethodName      = "/food.v1.FoodService/DeleteFood"
+	FoodService_ListFoods_FullMethodName       = "/food.v1.FoodService/ListFoods"
+	FoodService_GetFood_FullMethodName         = "/food.v1.FoodService/GetFood"
+	FoodService_SetFoodFrequent_FullMethodName = "/food.v1.FoodService/SetFoodFrequent"
 )
 
 // FoodServiceClient is the client API for FoodService service.
@@ -33,6 +34,7 @@ type FoodServiceClient interface {
 	DeleteFood(ctx context.Context, in *DeleteFoodRequest, opts ...grpc.CallOption) (*DeleteFoodResponse, error)
 	ListFoods(ctx context.Context, in *ListFoodsRequest, opts ...grpc.CallOption) (*ListFoodsResponse, error)
 	GetFood(ctx context.Context, in *GetFoodRequest, opts ...grpc.CallOption) (*GetFoodResponse, error)
+	SetFoodFrequent(ctx context.Context, in *SetFoodFrequentRequest, opts ...grpc.CallOption) (*SetFoodFrequentResponse, error)
 }
 
 type foodServiceClient struct {
@@ -83,6 +85,16 @@ func (c *foodServiceClient) GetFood(ctx context.Context, in *GetFoodRequest, opt
 	return out, nil
 }
 
+func (c *foodServiceClient) SetFoodFrequent(ctx context.Context, in *SetFoodFrequentRequest, opts ...grpc.CallOption) (*SetFoodFrequentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetFoodFrequentResponse)
+	err := c.cc.Invoke(ctx, FoodService_SetFoodFrequent_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FoodServiceServer is the server API for FoodService service.
 // All implementations must embed UnimplementedFoodServiceServer
 // for forward compatibility.
@@ -91,6 +103,7 @@ type FoodServiceServer interface {
 	DeleteFood(context.Context, *DeleteFoodRequest) (*DeleteFoodResponse, error)
 	ListFoods(context.Context, *ListFoodsRequest) (*ListFoodsResponse, error)
 	GetFood(context.Context, *GetFoodRequest) (*GetFoodResponse, error)
+	SetFoodFrequent(context.Context, *SetFoodFrequentRequest) (*SetFoodFrequentResponse, error)
 	mustEmbedUnimplementedFoodServiceServer()
 }
 
@@ -112,6 +125,9 @@ func (UnimplementedFoodServiceServer) ListFoods(context.Context, *ListFoodsReque
 }
 func (UnimplementedFoodServiceServer) GetFood(context.Context, *GetFoodRequest) (*GetFoodResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFood not implemented")
+}
+func (UnimplementedFoodServiceServer) SetFoodFrequent(context.Context, *SetFoodFrequentRequest) (*SetFoodFrequentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetFoodFrequent not implemented")
 }
 func (UnimplementedFoodServiceServer) mustEmbedUnimplementedFoodServiceServer() {}
 func (UnimplementedFoodServiceServer) testEmbeddedByValue()                     {}
@@ -206,6 +222,24 @@ func _FoodService_GetFood_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FoodService_SetFoodFrequent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetFoodFrequentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FoodServiceServer).SetFoodFrequent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FoodService_SetFoodFrequent_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FoodServiceServer).SetFoodFrequent(ctx, req.(*SetFoodFrequentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FoodService_ServiceDesc is the grpc.ServiceDesc for FoodService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +262,10 @@ var FoodService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFood",
 			Handler:    _FoodService_GetFood_Handler,
+		},
+		{
+			MethodName: "SetFoodFrequent",
+			Handler:    _FoodService_SetFoodFrequent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

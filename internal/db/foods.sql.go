@@ -12,17 +12,18 @@ import (
 )
 
 const createFood = `-- name: CreateFood :one
-INSERT INTO foods (name, calories, protein_g, carbs_g, fat_g)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, name, calories, protein_g, carbs_g, fat_g, created_at
+INSERT INTO foods (name, calories, protein_g, carbs_g, fat_g, is_frequent)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, name, calories, protein_g, carbs_g, fat_g, created_at, is_frequent
 `
 
 type CreateFoodParams struct {
-	Name     string
-	Calories pgtype.Numeric
-	ProteinG pgtype.Numeric
-	CarbsG   pgtype.Numeric
-	FatG     pgtype.Numeric
+	Name       string
+	Calories   pgtype.Numeric
+	ProteinG   pgtype.Numeric
+	CarbsG     pgtype.Numeric
+	FatG       pgtype.Numeric
+	IsFrequent bool
 }
 
 func (q *Queries) CreateFood(ctx context.Context, arg CreateFoodParams) (Food, error) {
@@ -32,6 +33,7 @@ func (q *Queries) CreateFood(ctx context.Context, arg CreateFoodParams) (Food, e
 		arg.ProteinG,
 		arg.CarbsG,
 		arg.FatG,
+		arg.IsFrequent,
 	)
 	var i Food
 	err := row.Scan(
@@ -42,6 +44,7 @@ func (q *Queries) CreateFood(ctx context.Context, arg CreateFoodParams) (Food, e
 		&i.CarbsG,
 		&i.FatG,
 		&i.CreatedAt,
+		&i.IsFrequent,
 	)
 	return i, err
 }
@@ -56,7 +59,7 @@ func (q *Queries) DeleteFood(ctx context.Context, id int32) error {
 }
 
 const getFood = `-- name: GetFood :one
-SELECT id, name, calories, protein_g, carbs_g, fat_g, created_at FROM foods WHERE id = $1
+SELECT id, name, calories, protein_g, carbs_g, fat_g, created_at, is_frequent FROM foods WHERE id = $1
 `
 
 func (q *Queries) GetFood(ctx context.Context, id int32) (Food, error) {
@@ -70,16 +73,20 @@ func (q *Queries) GetFood(ctx context.Context, id int32) (Food, error) {
 		&i.CarbsG,
 		&i.FatG,
 		&i.CreatedAt,
+		&i.IsFrequent,
 	)
 	return i, err
 }
 
 const listFoods = `-- name: ListFoods :many
-SELECT id, name, calories, protein_g, carbs_g, fat_g, created_at FROM foods ORDER BY id
+SELECT id, name, calories, protein_g, carbs_g, fat_g, created_at, is_frequent FROM foods
+WHERE $1::boolean IS NULL
+   OR is_frequent = $1
+ORDER BY id
 `
 
-func (q *Queries) ListFoods(ctx context.Context) ([]Food, error) {
-	rows, err := q.db.Query(ctx, listFoods)
+func (q *Queries) ListFoods(ctx context.Context, isFrequent pgtype.Bool) ([]Food, error) {
+	rows, err := q.db.Query(ctx, listFoods, isFrequent)
 	if err != nil {
 		return nil, err
 	}
@@ -95,6 +102,7 @@ func (q *Queries) ListFoods(ctx context.Context) ([]Food, error) {
 			&i.CarbsG,
 			&i.FatG,
 			&i.CreatedAt,
+			&i.IsFrequent,
 		); err != nil {
 			return nil, err
 		}
@@ -104,4 +112,30 @@ func (q *Queries) ListFoods(ctx context.Context) ([]Food, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const setFoodFrequent = `-- name: SetFoodFrequent :one
+UPDATE foods SET is_frequent = $2 WHERE id = $1
+RETURNING id, name, calories, protein_g, carbs_g, fat_g, created_at, is_frequent
+`
+
+type SetFoodFrequentParams struct {
+	ID         int32
+	IsFrequent bool
+}
+
+func (q *Queries) SetFoodFrequent(ctx context.Context, arg SetFoodFrequentParams) (Food, error) {
+	row := q.db.QueryRow(ctx, setFoodFrequent, arg.ID, arg.IsFrequent)
+	var i Food
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Calories,
+		&i.ProteinG,
+		&i.CarbsG,
+		&i.FatG,
+		&i.CreatedAt,
+		&i.IsFrequent,
+	)
+	return i, err
 }
