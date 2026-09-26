@@ -1,24 +1,24 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: myfitnesspal
+  name: baefitnesspal
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-credentials
-  namespace: myfitnesspal
+  namespace: baefitnesspal
 type: Opaque
 stringData:
   POSTGRES_USER: user
   POSTGRES_PASSWORD: password
-  POSTGRES_DB: myfitnesspal
+  POSTGRES_DB: baefitnesspal
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-data
-  namespace: myfitnesspal
+  namespace: baefitnesspal
 spec:
   accessModes:
     - ReadWriteOnce
@@ -30,7 +30,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: myfitnesspal
+  namespace: baefitnesspal
   labels:
     app: postgres
 spec:
@@ -58,12 +58,12 @@ spec:
               mountPath: /var/lib/postgresql
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "user", "-d", "myfitnesspal"]
+              command: ["pg_isready", "-U", "user", "-d", "baefitnesspal"]
             initialDelaySeconds: 5
             periodSeconds: 5
           livenessProbe:
             exec:
-              command: ["pg_isready", "-U", "user", "-d", "myfitnesspal"]
+              command: ["pg_isready", "-U", "user", "-d", "baefitnesspal"]
             initialDelaySeconds: 15
             periodSeconds: 10
           resources:
@@ -82,7 +82,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: myfitnesspal
+  namespace: baefitnesspal
 spec:
   selector:
     app: postgres
@@ -93,8 +93,8 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: myfitnesspal-migrate
-  namespace: myfitnesspal
+  name: baefitnesspal-migrate
+  namespace: baefitnesspal
 spec:
   backoffLimit: 5
   template:
@@ -106,41 +106,41 @@ spec:
           command:
             - sh
             - -c
-            - until pg_isready -h postgres -U user -d myfitnesspal; do echo waiting for postgres; sleep 2; done
+            - until pg_isready -h postgres -U user -d baefitnesspal; do echo waiting for postgres; sleep 2; done
       containers:
         - name: migrate
-          image: 192.168.1.201:30500/myfitnesspal-migrate:latest
+          image: 192.168.1.201:30500/baefitnesspal-migrate:latest
           imagePullPolicy: Always
           env:
             - name: DB_URL
-              value: postgres://user:password@postgres:5432/myfitnesspal?sslmode=disable
+              value: postgres://user:password@postgres:5432/baefitnesspal?sslmode=disable
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myfitnesspal-server
-  namespace: myfitnesspal
+  name: baefitnesspal-server
+  namespace: baefitnesspal
   labels:
-    app: myfitnesspal-server
+    app: baefitnesspal-server
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: myfitnesspal-server
+      app: baefitnesspal-server
   template:
     metadata:
       labels:
-        app: myfitnesspal-server
+        app: baefitnesspal-server
     spec:
       containers:
         - name: server
-          image: 192.168.1.201:30500/myfitnesspal-server:latest
+          image: 192.168.1.201:30500/baefitnesspal-server:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 50051
           env:
             - name: DB_URL
-              value: postgres://user:password@postgres:5432/myfitnesspal?sslmode=disable
+              value: postgres://user:password@postgres:5432/baefitnesspal?sslmode=disable
           resources:
             requests:
               cpu: 25m
@@ -152,11 +152,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: myfitnesspal-server
-  namespace: myfitnesspal
+  name: baefitnesspal-server
+  namespace: baefitnesspal
 spec:
   selector:
-    app: myfitnesspal-server
+    app: baefitnesspal-server
   ports:
     - port: 50051
       targetPort: 50051
@@ -164,29 +164,29 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: myfitnesspal-frontend
-  namespace: myfitnesspal
+  name: baefitnesspal-frontend
+  namespace: baefitnesspal
   labels:
-    app: myfitnesspal-frontend
+    app: baefitnesspal-frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: myfitnesspal-frontend
+      app: baefitnesspal-frontend
   template:
     metadata:
       labels:
-        app: myfitnesspal-frontend
+        app: baefitnesspal-frontend
     spec:
       containers:
         - name: frontend
-          image: 192.168.1.201:30500/myfitnesspal-frontend:latest
+          image: 192.168.1.201:30500/baefitnesspal-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
           env:
             - name: API_BASE
-              value: https://myfitnesspal-api.dilleystone.com
+              value: https://baefitnesspal-api.dilleystone.com
           resources:
             requests:
               cpu: 10m
@@ -198,11 +198,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: myfitnesspal-frontend
-  namespace: myfitnesspal
+  name: baefitnesspal-frontend
+  namespace: baefitnesspal
 spec:
   selector:
-    app: myfitnesspal-frontend
+    app: baefitnesspal-frontend
   ports:
     - port: 80
       targetPort: 80
@@ -210,40 +210,40 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: myfitnesspal-frontend
-  namespace: myfitnesspal
+  name: baefitnesspal-frontend
+  namespace: baefitnesspal
   annotations:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-    - host: my.dilleystone.com
+    - host: bae.dilleystone.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: myfitnesspal-frontend
+                name: baefitnesspal-frontend
                 port:
                   number: 80
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: myfitnesspal-api
-  namespace: myfitnesspal
+  name: baefitnesspal-api
+  namespace: baefitnesspal
   annotations:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-    - host: myfitnesspal-api.dilleystone.com
+    - host: baefitnesspal-api.dilleystone.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: myfitnesspal-server
+                name: baefitnesspal-server
                 port:
                   number: 50051
 

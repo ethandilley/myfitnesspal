@@ -584,7 +584,7 @@
 
 <script>
 
-const BASE = "https://myfitnesspal-api.dilleystone.com";
+const BASE = "__API_BASE__";
 
 /* ============================================================
    Generic RPC helper
@@ -1651,23 +1651,13 @@ async function refreshDailyLog() {
   empty.style.display = "none";
 
 
-  /* Map food IDs to foods */
-
-  const byId =
-    Object.fromEntries(
-      foods.map((f) => [
-        f.id,
-        f
-      ])
-    );
-
-
   /* ---------- Render entries ---------- */
 
   for (const entry of entries) {
 
-    const f =
-      byId[entry.foodId];
+    const name =
+      entry.foodName ||
+      `Food #${entry.foodId}`;
 
     const mult =
       entry.multiplier || 1;
@@ -1677,90 +1667,62 @@ async function refreshDailyLog() {
       document.createElement("tr");
 
 
-    if (!f) {
+    const foodCell =
+      document.createElement("td");
 
-      const foodCell =
-        document.createElement("td");
-
-      foodCell.textContent =
-        `Unknown food (#${entry.foodId})`;
-
-      const multCell =
-        document.createElement("td");
-
-      multCell.textContent =
-        mult;
-
-      const unknownCell =
-        document.createElement("td");
-
-      unknownCell.colSpan = 4;
-
-      unknownCell.textContent = "—";
-
-      tr.appendChild(foodCell);
-      tr.appendChild(multCell);
-      tr.appendChild(unknownCell);
-
-    } else {
-
-      const foodCell =
-        document.createElement("td");
-
-      foodCell.textContent =
-        f.name;
+    foodCell.textContent =
+      name;
 
 
-      const multCell =
-        document.createElement("td");
+    const multCell =
+      document.createElement("td");
 
-      multCell.textContent =
-        mult;
-
-
-      const calCell =
-        document.createElement("td");
-
-      calCell.textContent =
-        Math.round(
-          f.calories * mult
-        );
+    multCell.textContent =
+      mult;
 
 
-      const proteinCell =
-        document.createElement("td");
+    const calCell =
+      document.createElement("td");
 
-      proteinCell.textContent =
-        Math.round(
-          f.proteinG * mult
-        );
-
-
-      const carbsCell =
-        document.createElement("td");
-
-      carbsCell.textContent =
-        Math.round(
-          f.carbsG * mult
-        );
+    calCell.textContent =
+      Math.round(
+        (entry.calories || 0) * mult
+      );
 
 
-      const fatCell =
-        document.createElement("td");
+    const proteinCell =
+      document.createElement("td");
 
-      fatCell.textContent =
-        Math.round(
-          f.fatG * mult
-        );
+    proteinCell.textContent =
+      Math.round(
+        (entry.proteinG || 0) * mult
+      );
 
 
-      tr.appendChild(foodCell);
-      tr.appendChild(multCell);
-      tr.appendChild(calCell);
-      tr.appendChild(proteinCell);
-      tr.appendChild(carbsCell);
-      tr.appendChild(fatCell);
-    }
+    const carbsCell =
+      document.createElement("td");
+
+    carbsCell.textContent =
+      Math.round(
+        (entry.carbsG || 0) * mult
+      );
+
+
+    const fatCell =
+      document.createElement("td");
+
+    fatCell.textContent =
+      Math.round(
+        (entry.fatG || 0) * mult
+      );
+
+
+    tr.appendChild(foodCell);
+    tr.appendChild(multCell);
+    tr.appendChild(calCell);
+    tr.appendChild(proteinCell);
+    tr.appendChild(carbsCell);
+    tr.appendChild(fatCell);
 
 
     /* ---------- Delete log button ---------- */
@@ -1781,9 +1743,7 @@ async function refreshDailyLog() {
       "×";
 
     const foodNameForLabel =
-      f
-        ? f.name
-        : `food #${entry.foodId}`;
+      name;
 
     deleteButton.title =
       `Delete this ${foodNameForLabel} log entry`;

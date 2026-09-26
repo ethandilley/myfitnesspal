@@ -93,7 +93,11 @@ var logLsCmd = &cobra.Command{
 		}
 
 		for _, e := range resp.LogEntries {
-			fmt.Printf("#%d  food:%d  x%.1f  %s\n", e.Id, e.FoodId, e.Multiplier, e.LoggedAt)
+			name := e.GetFoodName()
+			if name == "" {
+				name = fmt.Sprintf("food #%d", e.GetFoodId())
+			}
+			fmt.Printf("#%d  %s  x%.1f  %s\n", e.Id, name, e.Multiplier, e.LoggedAt)
 		}
 		return nil
 	},
@@ -121,7 +125,11 @@ var logTodayCmd = &cobra.Command{
 		}
 
 		for _, e := range resp.LogEntries {
-			fmt.Printf("#%d  food:%d  x%.1f\n", e.Id, e.FoodId, e.Multiplier)
+			name := e.GetFoodName()
+			if name == "" {
+				name = fmt.Sprintf("food #%d", e.GetFoodId())
+			}
+			fmt.Printf("#%d  %s  x%.1f\n", e.Id, name, e.Multiplier)
 		}
 
 		if resp.Totals != nil {

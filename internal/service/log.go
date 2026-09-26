@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -31,12 +34,15 @@ func (s *LogService) CreateLogEntry(ctx context.Context, req *connect.Request[lo
 	}
 
 	row, err := s.q.CreateLogEntry(ctx, db.CreateLogEntryParams{
-		FoodID:     msg.GetFoodId(),
+		FoodID:     pgtype.Int4{Int32: msg.GetFoodId(), Valid: true},
 		Multiplier: floatToNumeric(msg.Multiplier),
 		LoggedAt:   loggedAt,
 	})
 	if err != nil {
-		return nil, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("food %d not found", msg.GetFoodId()))
+		}
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 	return connect.NewResponse(&logv1.CreateLogEntryResponse{LogEntry: toProtoLogEntry(row)}), nil
 }
@@ -94,11 +100,20 @@ func (s *LogService) ListLogEntriesByDate(ctx context.Context, req *connect.Requ
 }
 
 func toProtoLogEntry(row db.LogEntry) *logv1.LogEntry {
+	foodID := int32(0)
+	if row.FoodID.Valid {
+		foodID = row.FoodID.Int32
+	}
 	return &logv1.LogEntry{
 		Id:         row.ID,
-		FoodId:     row.FoodID,
+		FoodId:     foodID,
 		Multiplier: numericToFloat(row.Multiplier),
 		LoggedAt:   dateToString(row.LoggedAt),
+		FoodName:   row.FoodName,
+		Calories:   numericToFloat(row.Calories),
+		ProteinG:   numericToFloat(row.ProteinG),
+		CarbsG:     numericToFloat(row.CarbsG),
+		FatG:       numericToFloat(row.FatG),
 	}
 }
 
