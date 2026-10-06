@@ -12,13 +12,16 @@ import (
 )
 
 const createLogEntry = `-- name: CreateLogEntry :one
-INSERT INTO log_entries (food_id, multiplier, logged_at)
-VALUES ($1, $2, COALESCE($3::date, CURRENT_DATE))
-RETURNING id, food_id, multiplier, logged_at, created_at
+INSERT INTO log_entries (food_id, food_name, calories, protein_g, carbs_g, fat_g, multiplier, logged_at)
+SELECT $1, f.name, f.calories, f.protein_g, f.carbs_g, f.fat_g, $2,
+       COALESCE($3::date, CURRENT_DATE)
+FROM foods f
+WHERE f.id = $1
+RETURNING id, food_id, multiplier, logged_at, created_at, food_name, calories, protein_g, carbs_g, fat_g
 `
 
 type CreateLogEntryParams struct {
-	FoodID     int32
+	FoodID     pgtype.Int4
 	Multiplier pgtype.Numeric
 	LoggedAt   pgtype.Date
 }
@@ -32,6 +35,11 @@ func (q *Queries) CreateLogEntry(ctx context.Context, arg CreateLogEntryParams) 
 		&i.Multiplier,
 		&i.LoggedAt,
 		&i.CreatedAt,
+		&i.FoodName,
+		&i.Calories,
+		&i.ProteinG,
+		&i.CarbsG,
+		&i.FatG,
 	)
 	return i, err
 }
@@ -46,7 +54,7 @@ func (q *Queries) DeleteLogEntry(ctx context.Context, id int32) error {
 }
 
 const getLogEntry = `-- name: GetLogEntry :one
-SELECT id, food_id, multiplier, logged_at, created_at FROM log_entries where id = $1
+SELECT id, food_id, multiplier, logged_at, created_at, food_name, calories, protein_g, carbs_g, fat_g FROM log_entries where id = $1
 `
 
 func (q *Queries) GetLogEntry(ctx context.Context, id int32) (LogEntry, error) {
@@ -58,19 +66,23 @@ func (q *Queries) GetLogEntry(ctx context.Context, id int32) (LogEntry, error) {
 		&i.Multiplier,
 		&i.LoggedAt,
 		&i.CreatedAt,
+		&i.FoodName,
+		&i.Calories,
+		&i.ProteinG,
+		&i.CarbsG,
+		&i.FatG,
 	)
 	return i, err
 }
 
 const getMacroTotalsByDate = `-- name: GetMacroTotalsByDate :one
 SELECT
-    COALESCE(SUM(f.calories * l.multiplier), 0)::numeric AS calories,
-    COALESCE(SUM(f.protein_g * l.multiplier), 0)::numeric AS protein_g,
-    COALESCE(SUM(f.carbs_g * l.multiplier), 0)::numeric AS carbs_g,
-    COALESCE(SUM(f.fat_g * l.multiplier), 0)::numeric AS fat_g
-FROM log_entries l
-JOIN foods f ON f.id = l.food_id
-WHERE l.logged_at = $1
+    COALESCE(SUM(calories * multiplier), 0)::numeric AS calories,
+    COALESCE(SUM(protein_g * multiplier), 0)::numeric AS protein_g,
+    COALESCE(SUM(carbs_g * multiplier), 0)::numeric AS carbs_g,
+    COALESCE(SUM(fat_g * multiplier), 0)::numeric AS fat_g
+FROM log_entries
+WHERE logged_at = $1
 `
 
 type GetMacroTotalsByDateRow struct {
@@ -93,7 +105,7 @@ func (q *Queries) GetMacroTotalsByDate(ctx context.Context, loggedAt pgtype.Date
 }
 
 const listLogEntries = `-- name: ListLogEntries :many
-SELECT id, food_id, multiplier, logged_at, created_at FROM log_entries ORDER BY logged_at DESC, id
+SELECT id, food_id, multiplier, logged_at, created_at, food_name, calories, protein_g, carbs_g, fat_g FROM log_entries ORDER BY logged_at DESC, id
 `
 
 func (q *Queries) ListLogEntries(ctx context.Context) ([]LogEntry, error) {
@@ -111,6 +123,11 @@ func (q *Queries) ListLogEntries(ctx context.Context) ([]LogEntry, error) {
 			&i.Multiplier,
 			&i.LoggedAt,
 			&i.CreatedAt,
+			&i.FoodName,
+			&i.Calories,
+			&i.ProteinG,
+			&i.CarbsG,
+			&i.FatG,
 		); err != nil {
 			return nil, err
 		}
@@ -123,7 +140,7 @@ func (q *Queries) ListLogEntries(ctx context.Context) ([]LogEntry, error) {
 }
 
 const listLogEntriesByDate = `-- name: ListLogEntriesByDate :many
-SELECT id, food_id, multiplier, logged_at, created_at FROM log_entries
+SELECT id, food_id, multiplier, logged_at, created_at, food_name, calories, protein_g, carbs_g, fat_g FROM log_entries
 WHERE logged_at = $1
 ORDER BY id
 `
@@ -143,6 +160,11 @@ func (q *Queries) ListLogEntriesByDate(ctx context.Context, loggedAt pgtype.Date
 			&i.Multiplier,
 			&i.LoggedAt,
 			&i.CreatedAt,
+			&i.FoodName,
+			&i.Calories,
+			&i.ProteinG,
+			&i.CarbsG,
+			&i.FatG,
 		); err != nil {
 			return nil, err
 		}

@@ -21,8 +21,13 @@ type Food struct {
 
 type LogEntry struct {
 	ID         int32
-	FoodID     int32
+	FoodID     pgtype.Int4
 	Multiplier pgtype.Numeric
 	LoggedAt   pgtype.Date
 	CreatedAt  pgtype.Timestamptz
+	FoodName   string
+	Calories   pgtype.Numeric
+	ProteinG   pgtype.Numeric
+	CarbsG     pgtype.Numeric
+	FatG       pgtype.Numeric
 }

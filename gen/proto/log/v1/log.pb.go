@@ -27,6 +27,11 @@ type LogEntry struct {
 	FoodId        int32                  `protobuf:"varint,2,opt,name=food_id,json=foodId,proto3" json:"food_id,omitempty"`
 	Multiplier    float64                `protobuf:"fixed64,3,opt,name=multiplier,proto3" json:"multiplier,omitempty"`
 	LoggedAt      string                 `protobuf:"bytes,4,opt,name=logged_at,json=loggedAt,proto3" json:"logged_at,omitempty"` // YYYY-MM-DD
+	FoodName      string                 `protobuf:"bytes,5,opt,name=food_name,json=foodName,proto3" json:"food_name,omitempty"`
+	Calories      float64                `protobuf:"fixed64,6,opt,name=calories,proto3" json:"calories,omitempty"`
+	ProteinG      float64                `protobuf:"fixed64,7,opt,name=protein_g,json=proteinG,proto3" json:"protein_g,omitempty"`
+	CarbsG        float64                `protobuf:"fixed64,8,opt,name=carbs_g,json=carbsG,proto3" json:"carbs_g,omitempty"`
+	FatG          float64                `protobuf:"fixed64,9,opt,name=fat_g,json=fatG,proto3" json:"fat_g,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -87,6 +92,41 @@ func (x *LogEntry) GetLoggedAt() string {
 		return x.LoggedAt
 	}
 	return ""
+}
+
+func (x *LogEntry) GetFoodName() string {
+	if x != nil {
+		return x.FoodName
+	}
+	return ""
+}
+
+func (x *LogEntry) GetCalories() float64 {
+	if x != nil {
+		return x.Calories
+	}
+	return 0
+}
+
+func (x *LogEntry) GetProteinG() float64 {
+	if x != nil {
+		return x.ProteinG
+	}
+	return 0
+}
+
+func (x *LogEntry) GetCarbsG() float64 {
+	if x != nil {
+		return x.CarbsG
+	}
+	return 0
+}
+
+func (x *LogEntry) GetFatG() float64 {
+	if x != nil {
+		return x.FatG
+	}
+	return 0
 }
 
 type MacroTotals struct {
@@ -521,14 +561,19 @@ var File_proto_log_v1_log_proto protoreflect.FileDescriptor
 
 const file_proto_log_v1_log_proto_rawDesc = "" +
 	"\n" +
-	"\x16proto/log/v1/log.proto\x12\x06log.v1\"p\n" +
+	"\x16proto/log/v1/log.proto\x12\x06log.v1\"\xf4\x01\n" +
 	"\bLogEntry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x17\n" +
 	"\afood_id\x18\x02 \x01(\x05R\x06foodId\x12\x1e\n" +
 	"\n" +
 	"multiplier\x18\x03 \x01(\x01R\n" +
 	"multiplier\x12\x1b\n" +
-	"\tlogged_at\x18\x04 \x01(\tR\bloggedAt\"t\n" +
+	"\tlogged_at\x18\x04 \x01(\tR\bloggedAt\x12\x1b\n" +
+	"\tfood_name\x18\x05 \x01(\tR\bfoodName\x12\x1a\n" +
+	"\bcalories\x18\x06 \x01(\x01R\bcalories\x12\x1b\n" +
+	"\tprotein_g\x18\a \x01(\x01R\bproteinG\x12\x17\n" +
+	"\acarbs_g\x18\b \x01(\x01R\x06carbsG\x12\x13\n" +
+	"\x05fat_g\x18\t \x01(\x01R\x04fatG\"t\n" +
 	"\vMacroTotals\x12\x1a\n" +
 	"\bcalories\x18\x01 \x01(\x01R\bcalories\x12\x1b\n" +
 	"\tprotein_g\x18\x02 \x01(\x01R\bproteinG\x12\x17\n" +

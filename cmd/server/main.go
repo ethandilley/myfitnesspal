@@ -19,7 +19,7 @@ import (
 
 func withCORS(h http.Handler) http.Handler {
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173", "https://my.dilleystone.com"},
+		AllowedOrigins: []string{"http://localhost:5173", "https://my.dilleystone.com", "https://mom.dilleystone.com", "https://bae.dilleystone.com" },
 		AllowedMethods: connectcors.AllowedMethods(),
 		AllowedHeaders: connectcors.AllowedHeaders(),
 		ExposedHeaders: connectcors.ExposedHeaders(),

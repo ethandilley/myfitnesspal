@@ -1,6 +1,9 @@
 -- name: CreateLogEntry :one
-INSERT INTO log_entries (food_id, multiplier, logged_at)
-VALUES ($1, $2, COALESCE(sqlc.narg('logged_at')::date, CURRENT_DATE))
+INSERT INTO log_entries (food_id, food_name, calories, protein_g, carbs_g, fat_g, multiplier, logged_at)
+SELECT $1, f.name, f.calories, f.protein_g, f.carbs_g, f.fat_g, $2,
+       COALESCE(sqlc.narg('logged_at')::date, CURRENT_DATE)
+FROM foods f
+WHERE f.id = $1
 RETURNING *;
 
 -- name: GetLogEntry :one
@@ -19,10 +22,9 @@ ORDER BY id;
 
 -- name: GetMacroTotalsByDate :one
 SELECT
-    COALESCE(SUM(f.calories * l.multiplier), 0)::numeric AS calories,
-    COALESCE(SUM(f.protein_g * l.multiplier), 0)::numeric AS protein_g,
-    COALESCE(SUM(f.carbs_g * l.multiplier), 0)::numeric AS carbs_g,
-    COALESCE(SUM(f.fat_g * l.multiplier), 0)::numeric AS fat_g
-FROM log_entries l
-JOIN foods f ON f.id = l.food_id
-WHERE l.logged_at = $1;
+    COALESCE(SUM(calories * multiplier), 0)::numeric AS calories,
+    COALESCE(SUM(protein_g * multiplier), 0)::numeric AS protein_g,
+    COALESCE(SUM(carbs_g * multiplier), 0)::numeric AS carbs_g,
+    COALESCE(SUM(fat_g * multiplier), 0)::numeric AS fat_g
+FROM log_entries
+WHERE logged_at = $1;

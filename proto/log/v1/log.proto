@@ -9,6 +9,11 @@ message LogEntry {
   int32 food_id = 2;
   double multiplier = 3;
   string logged_at = 4; // YYYY-MM-DD
+  string food_name = 5;
+  double calories = 6;
+  double protein_g = 7;
+  double carbs_g = 8;
+  double fat_g = 9;
 }
 
 message MacroTotals {
